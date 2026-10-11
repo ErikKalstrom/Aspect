@@ -6,8 +6,12 @@ import com.aspects.smp.ability.ActivationListener;
 import com.aspects.smp.ability.ProtectionGate;
 import com.aspects.smp.ability.impl.FireActiveAbility;
 import com.aspects.smp.ability.impl.FirePassiveAbility;
+import com.aspects.smp.ability.impl.FrostActiveAbility;
+import com.aspects.smp.ability.impl.FrostPassiveAbility;
 import com.aspects.smp.ability.impl.TideActiveAbility;
 import com.aspects.smp.ability.impl.TidePassiveAbility;
+import com.aspects.smp.ability.impl.WindActiveAbility;
+import com.aspects.smp.ability.impl.WindPassiveAbility;
 import com.aspects.smp.aspect.Aspect;
 import com.aspects.smp.aspect.AspectAssignmentService;
 import com.aspects.smp.aspect.AspectDefinition;
@@ -20,6 +24,7 @@ import com.aspects.smp.config.ConfigManager;
 import com.aspects.smp.config.ConfigValidationException;
 import com.aspects.smp.data.PlayerDataRepository;
 import com.aspects.smp.data.SQLitePlayerDataRepository;
+import com.aspects.smp.listener.PlayerDamageListener;
 import com.aspects.smp.listener.PlayerJoinListener;
 import com.aspects.smp.listener.PlayerQuitListener;
 import com.aspects.smp.listener.PlayerRespawnListener;
@@ -67,6 +72,7 @@ public final class AspectsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerRespawnListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new ActivationListener(abilityManager, this), this);
+        getServer().getPluginManager().registerEvents(new PlayerDamageListener(this), this);
 
         AdminCommand adminCommand = new AdminCommand(this);
         AspectsCommand aspectsCommand = new AspectsCommand(this, adminCommand);
@@ -107,9 +113,18 @@ public final class AspectsPlugin extends JavaPlugin {
         if (tide != null) {
             registry.register(new Aspect(tide, new TidePassiveAbility(), new TideActiveAbility()));
         }
+        AspectDefinition frost = definitions.get("frost");
+        if (frost != null) {
+            registry.register(new Aspect(frost, new FrostPassiveAbility(), new FrostActiveAbility()));
+        }
+        AspectDefinition wind = definitions.get("wind");
+        if (wind != null) {
+            registry.register(new Aspect(wind, new WindPassiveAbility(), new WindActiveAbility()));
+        }
 
         for (AspectDefinition definition : definitions.values()) {
-            if (!definition.id().equals("fire") && !definition.id().equals("tide")) {
+            if (!definition.id().equals("fire") && !definition.id().equals("tide")
+                    && !definition.id().equals("frost") && !definition.id().equals("wind")) {
                 getLogger().info("Aspect '" + definition.id() +
                         "' is defined in aspects.yml but not yet implemented in code; skipping registration.");
             }
