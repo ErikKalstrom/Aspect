@@ -36,11 +36,14 @@ import com.aspects.smp.config.ConfigValidationException;
 import com.aspects.smp.item.CustomItemManager;
 import com.aspects.smp.data.PlayerDataRepository;
 import com.aspects.smp.data.SQLitePlayerDataRepository;
+import com.aspects.smp.item.RerollerInteractListener;
+import com.aspects.smp.listener.InventoryListener;
 import com.aspects.smp.listener.PlayerDamageListener;
 import com.aspects.smp.listener.PlayerDeathListener;
 import com.aspects.smp.listener.PlayerJoinListener;
 import com.aspects.smp.listener.PlayerQuitListener;
 import com.aspects.smp.listener.PlayerRespawnListener;
+import com.aspects.smp.recipe.RerollerRecipeManager;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -77,6 +80,7 @@ public final class AspectsPlugin extends JavaPlugin {
     private AbilityCooldownManager cooldownManager;
     private TemporaryEffectManager temporaryEffectManager;
     private CustomItemManager customItemManager;
+    private RerollerRecipeManager rerollerRecipeManager;
     private AbilityManager abilityManager;
 
     @Override
@@ -99,6 +103,7 @@ public final class AspectsPlugin extends JavaPlugin {
         cooldownManager = new AbilityCooldownManager(dataRepository);
         temporaryEffectManager = new TemporaryEffectManager();
         customItemManager = new CustomItemManager(this);
+        rerollerRecipeManager = new RerollerRecipeManager(this);
         aspectManager = new AspectManager(aspectRegistry, new AspectAssignmentService(), dataRepository,
                 cooldownManager, temporaryEffectManager, getLogger(), configManager.general().excludeCurrentOnReroll(),
                 runnable -> getServer().getScheduler().runTask(this, runnable));
@@ -112,6 +117,8 @@ public final class AspectsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerDeathListener(this), this);
         getServer().getPluginManager().registerEvents(new ActivationListener(abilityManager, this), this);
         getServer().getPluginManager().registerEvents(new PlayerDamageListener(this), this);
+        getServer().getPluginManager().registerEvents(new InventoryListener(), this);
+        getServer().getPluginManager().registerEvents(new RerollerInteractListener(this), this);
 
         AdminCommand adminCommand = new AdminCommand(this);
         AspectsCommand aspectsCommand = new AspectsCommand(this, adminCommand);
@@ -125,6 +132,8 @@ public final class AspectsPlugin extends JavaPlugin {
         for (Player player : getServer().getOnlinePlayers()) {
             aspectManager.loadOrAssign(player, () -> {});
         }
+
+        rerollerRecipeManager.register(configManager.recipes());
 
         getLogger().info("Aspects enabled with " + aspectRegistry.enabled().size() + " enabled aspect(s).");
     }
