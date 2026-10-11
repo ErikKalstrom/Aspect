@@ -6,10 +6,14 @@ import com.aspects.smp.ability.AbilityManager;
 import com.aspects.smp.ability.ActivationListener;
 import com.aspects.smp.ability.PassiveAbility;
 import com.aspects.smp.ability.ProtectionGate;
+import com.aspects.smp.ability.impl.EarthActiveAbility;
+import com.aspects.smp.ability.impl.EarthPassiveAbility;
 import com.aspects.smp.ability.impl.FireActiveAbility;
 import com.aspects.smp.ability.impl.FirePassiveAbility;
 import com.aspects.smp.ability.impl.FrostActiveAbility;
 import com.aspects.smp.ability.impl.FrostPassiveAbility;
+import com.aspects.smp.ability.impl.ThunderActiveAbility;
+import com.aspects.smp.ability.impl.ThunderPassiveAbility;
 import com.aspects.smp.ability.impl.TideActiveAbility;
 import com.aspects.smp.ability.impl.TidePassiveAbility;
 import com.aspects.smp.ability.impl.WindActiveAbility;
@@ -43,13 +47,17 @@ public final class AspectsPlugin extends JavaPlugin {
             "fire", FirePassiveAbility::new,
             "tide", TidePassiveAbility::new,
             "frost", FrostPassiveAbility::new,
-            "wind", WindPassiveAbility::new
+            "wind", WindPassiveAbility::new,
+            "earth", EarthPassiveAbility::new,
+            "thunder", ThunderPassiveAbility::new
     );
     private static final Map<String, Supplier<Ability>> ACTIVE_FACTORIES = Map.of(
             "fire", FireActiveAbility::new,
             "tide", TideActiveAbility::new,
             "frost", FrostActiveAbility::new,
-            "wind", WindActiveAbility::new
+            "wind", WindActiveAbility::new,
+            "earth", EarthActiveAbility::new,
+            "thunder", ThunderActiveAbility::new
     );
     private ConfigManager configManager;
     private PlayerDataRepository dataRepository;
