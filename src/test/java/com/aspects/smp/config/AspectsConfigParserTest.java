@@ -323,4 +323,19 @@ class AspectsConfigParserTest {
         assertTrue(errors.isEmpty());
         assertEquals(org.bukkit.Material.STONE, aspects.get("fire").icon());
     }
+
+    @Test
+    void parseAspects_rejectsAirAsIcon() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "aspects:\n" +
+                "  fire:\n" +
+                "    enabled: true\n" +
+                "    icon: AIR\n"));
+        List<String> errors = new ArrayList<>();
+
+        Map<String, AspectDefinition> aspects = AspectsConfigParser.parseAspects(yml, errors);
+
+        assertTrue(errors.stream().anyMatch(e -> e.contains("must not be an air material")));
+        assertEquals(org.bukkit.Material.STONE, aspects.get("fire").icon());
+    }
 }

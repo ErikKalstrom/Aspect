@@ -77,10 +77,15 @@ public final class MainAspectGUI implements AspectsGuiHolder {
                         .replace("{seconds}", String.valueOf((remainingMillis + 999) / 1000))
                 : plugin.getConfigManager().message("gui.main.cooldown-ready");
 
+        String capitalizedId = aspect.definition().id().substring(0, 1).toUpperCase(java.util.Locale.ROOT) +
+                aspect.definition().id().substring(1);
         List<String> lore = new ArrayList<>();
         lore.add("<" + aspect.definition().rarity().color() + ">" + aspect.definition().rarity().name() + "</" +
                 aspect.definition().rarity().color() + ">");
         lore.add(aspect.definition().description());
+        lore.add(" ");
+        lore.add(plugin.getConfigManager().message("gui.details.passive-label") + " " + capitalizedId + " passive");
+        lore.add(plugin.getConfigManager().message("gui.details.active-label") + " " + capitalizedId + " active ability");
         lore.add(" ");
         lore.add(cooldownLine);
         meta.lore(lore.stream().map(line -> MessageUtil.parse(line).decoration(TextDecoration.ITALIC, false)).toList());
@@ -96,22 +101,26 @@ public final class MainAspectGUI implements AspectsGuiHolder {
 
         RecipesConfig recipes = plugin.getConfigManager().recipes();
         List<String> lore = new ArrayList<>();
-        for (String row : recipes.rerollerPattern()) {
-            StringBuilder line = new StringBuilder("<gray>");
-            for (int i = 0; i < row.length(); i++) {
-                char c = row.charAt(i);
-                if (i > 0) {
-                    line.append(", ");
+        if (!recipes.rerollerEnabled()) {
+            lore.add(plugin.getConfigManager().message("gui.main.craft-info-disabled"));
+        } else {
+            for (String row : recipes.rerollerPattern()) {
+                StringBuilder line = new StringBuilder("<gray>");
+                for (int i = 0; i < row.length(); i++) {
+                    char c = row.charAt(i);
+                    if (i > 0) {
+                        line.append(", ");
+                    }
+                    if (c == ' ') {
+                        line.append("(empty)");
+                    } else {
+                        Material material = recipes.rerollerIngredients().get(c);
+                        line.append(material != null ? material.name() : "?");
+                    }
                 }
-                if (c == ' ') {
-                    line.append("(empty)");
-                } else {
-                    Material material = recipes.rerollerIngredients().get(c);
-                    line.append(material != null ? material.name() : "?");
-                }
+                line.append("</gray>");
+                lore.add(line.toString());
             }
-            line.append("</gray>");
-            lore.add(line.toString());
         }
         meta.lore(lore.stream().map(line -> MessageUtil.parse(line).decoration(TextDecoration.ITALIC, false)).toList());
         item.setItemMeta(meta);

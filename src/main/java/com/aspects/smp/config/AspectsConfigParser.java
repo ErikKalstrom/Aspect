@@ -73,6 +73,9 @@ public final class AspectsConfigParser {
             if (icon == null) {
                 errors.add("aspects." + id + ".icon has unknown material '" + iconRaw + "'");
                 icon = Material.STONE;
+            } else if (icon.name().equals("AIR") || icon.name().endsWith("_AIR")) {
+                errors.add("aspects." + id + ".icon must not be an air material (" + iconRaw + ") — icons must be displayable items");
+                icon = Material.STONE;
             }
 
             Map<String, Object> settings = aspectSection.getValues(true);

@@ -36,5 +36,6 @@ gui:
     title: "<dark_purple>Your Aspect</dark_purple>"
     browse-name: "<aqua>Browse Aspects</aqua>"
     craft-info-name: "<gray>How to craft a Reroller</gray>"
+    craft-info-disabled: "<red>Rerolling via crafting is currently disabled on this server.</red>"
     cooldown-ready: "<green>Ready</green>"
     cooldown-remaining: "<red>{seconds}s remaining</red>"

@@ -85,11 +85,13 @@ public final class AspectDetailsGUI implements AspectsGuiHolder {
     }
 
     private String passiveSummary() {
-        return aspect.definition().id().substring(0, 1).toUpperCase() + aspect.definition().id().substring(1) + " passive";
+        return aspect.definition().id().substring(0, 1).toUpperCase(java.util.Locale.ROOT) +
+                aspect.definition().id().substring(1) + " passive";
     }
 
     private String activeSummary() {
-        return aspect.definition().id().substring(0, 1).toUpperCase() + aspect.definition().id().substring(1) + " active ability";
+        return aspect.definition().id().substring(0, 1).toUpperCase(java.util.Locale.ROOT) +
+                aspect.definition().id().substring(1) + " active ability";
     }
 
     @Override
