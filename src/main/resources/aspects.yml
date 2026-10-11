@@ -1,10 +1,10 @@
 # Each entry under `aspects` defines one Aspect. `enabled: false` aspects are
 # never assigned to players and are excluded from random selection.
 #
-# fire and tide are the only two Aspects implemented in this phase (Phase 1).
-# The remaining six are listed here with their final rarity/description so the
-# file's shape is correct, but their abilities are NOT implemented yet — they
-# ship disabled until a later phase adds their code.
+# fire, tide, frost, and wind are implemented (Phase 1 and Phase 2 Batch A).
+# The remaining four are listed here with their final rarity/description so
+# the file's shape is correct, but their abilities are NOT implemented yet —
+# they ship disabled until a later phase adds their code.
 aspects:
   fire:
     enabled: true
