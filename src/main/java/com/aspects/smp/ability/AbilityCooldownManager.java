@@ -22,7 +22,10 @@ public final class AbilityCooldownManager {
     }
 
     public void loadIntoCache(UUID playerId, Map<String, Long> cooldowns) {
-        expiryByPlayer.put(playerId, new ConcurrentHashMap<>(cooldowns));
+        Map<String, Long> playerCooldowns = expiryByPlayer.computeIfAbsent(playerId, id -> new ConcurrentHashMap<>());
+        for (Map.Entry<String, Long> entry : cooldowns.entrySet()) {
+            playerCooldowns.merge(entry.getKey(), entry.getValue(), Math::max);
+        }
     }
 
     public void clearCache(UUID playerId) {

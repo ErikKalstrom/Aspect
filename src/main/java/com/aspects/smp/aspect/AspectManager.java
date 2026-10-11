@@ -42,22 +42,37 @@ public final class AspectManager {
 
     public void loadOrAssign(Player player, Runnable onFirstJoin) {
         UUID id = player.getUniqueId();
-        repository.loadPlayer(id).thenAccept(existing -> mainThreadExecutor.execute(() -> {
-            if (existing.isPresent()) {
-                Aspect aspect = registry.get(existing.get().aspectId()).orElse(null);
-                if (aspect == null || !aspect.definition().enabled()) {
-                    logger.warning("Player " + player.getName() + " had an invalid or disabled aspect '" +
-                            existing.get().aspectId() + "'; reassigning.");
-                    assignNew(player, null, onFirstJoin);
-                    return;
-                }
-                assigned.put(id, aspect);
-                aspect.passive().onEquip(player, aspect.definition());
-                repository.loadCooldowns(id).thenAccept(cooldowns -> cooldownManager.loadIntoCache(id, cooldowns));
-            } else {
-                assignNew(player, null, onFirstJoin);
-            }
-        }));
+        repository.loadPlayer(id)
+                .thenCombine(repository.loadCooldowns(id), Map::entry)
+                .thenAccept(loaded -> mainThreadExecutor.execute(() -> {
+                    if (!player.isOnline()) {
+                        return;
+                    }
+                    Optional<PlayerAspectData> existing = loaded.getKey();
+                    Map<String, Long> cooldowns = loaded.getValue();
+                    if (existing.isPresent()) {
+                        Aspect aspect = registry.get(existing.get().aspectId()).orElse(null);
+                        if (aspect == null || !aspect.definition().enabled()) {
+                            logger.warning("Player " + player.getName() + " had an invalid or disabled aspect '" +
+                                    existing.get().aspectId() + "'; reassigning.");
+                            for (Aspect candidate : registry.all()) {
+                                candidate.passive().onUnequip(player);
+                            }
+                            assignNew(player, null, onFirstJoin);
+                            return;
+                        }
+                        cooldownManager.loadIntoCache(id, cooldowns);
+                        assigned.put(id, aspect);
+                        aspect.passive().onEquip(player, aspect.definition());
+                    } else {
+                        assignNew(player, null, onFirstJoin);
+                    }
+                }))
+                .exceptionally(ex -> {
+                    logger.severe("Failed to load Aspect data for " + player.getName() +
+                            "; leaving them unassigned for this session: " + ex.getMessage());
+                    return null;
+                });
     }
 
     private void assignNew(Player player, String excludeId, Runnable onAssigned) {

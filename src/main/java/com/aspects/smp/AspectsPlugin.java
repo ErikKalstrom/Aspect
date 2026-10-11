@@ -24,6 +24,7 @@ import com.aspects.smp.listener.PlayerJoinListener;
 import com.aspects.smp.listener.PlayerQuitListener;
 import com.aspects.smp.listener.PlayerRespawnListener;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -76,11 +77,20 @@ public final class AspectsPlugin extends JavaPlugin {
             command.setTabCompleter(tabCompleter);
         }
 
+        for (Player player : getServer().getOnlinePlayers()) {
+            aspectManager.loadOrAssign(player, () -> {});
+        }
+
         getLogger().info("Aspects enabled with " + aspectRegistry.enabled().size() + " enabled aspect(s).");
     }
 
     @Override
     public void onDisable() {
+        if (aspectManager != null) {
+            for (Player player : getServer().getOnlinePlayers()) {
+                aspectManager.unload(player);
+            }
+        }
         if (dataRepository != null) {
             dataRepository.close();
         }
