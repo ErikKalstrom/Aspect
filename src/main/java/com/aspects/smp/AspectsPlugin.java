@@ -34,6 +34,7 @@ import com.aspects.smp.config.ConfigValidationException;
 import com.aspects.smp.data.PlayerDataRepository;
 import com.aspects.smp.data.SQLitePlayerDataRepository;
 import com.aspects.smp.listener.PlayerDamageListener;
+import com.aspects.smp.listener.PlayerDeathListener;
 import com.aspects.smp.listener.PlayerJoinListener;
 import com.aspects.smp.listener.PlayerQuitListener;
 import com.aspects.smp.listener.PlayerRespawnListener;
@@ -101,6 +102,7 @@ public final class AspectsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerRespawnListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerDeathListener(this), this);
         getServer().getPluginManager().registerEvents(new ActivationListener(abilityManager, this), this);
         getServer().getPluginManager().registerEvents(new PlayerDamageListener(this), this);
 
