@@ -199,9 +199,16 @@ brief (not guessed ad hoc by whichever subagent implements it).
 
 Size-27 (3 rows) inventory. Contents, per the spec's bullet list:
 - Center-top area: an item representing the player's current Aspect (their `icon` material), lore showing
-  rarity (colored per `AspectRarity`'s existing color mapping — already used in messages, reused here),
-  passive ability name/description, active ability name/description, and current cooldown remaining (0 if
-  ready) read from the existing `AbilityCooldownManager.remainingMillis`.
+  rarity, passive ability name/description, active ability name/description, and current cooldown remaining
+  (0 if ready) read from the existing `AbilityCooldownManager.remainingMillis`.
+- **Correction to an assumption made earlier in this document:** there is currently no rarity-to-color
+  mapping anywhere in the codebase — `AspectsCommand.handleInfo` prints the rarity name in plain white today,
+  and the spec's "rarity colors are consistent throughout messages and GUIs" has never actually been
+  implemented. Batch 3b adds `AspectRarity.color() -> String` (a MiniMessage color/tag per rarity — e.g.
+  `COMMON` white, `UNCOMMON` green, `RARE` blue, `EPIC` dark purple/gradient, `LEGENDARY` gold/gradient,
+  exact values picked in the implementation plan) and retrofits it into `AspectsCommand.handleInfo`'s
+  existing rarity line at the same time these GUIs are built, so the requirement is actually satisfied
+  everywhere at once rather than only in the new GUIs.
 - A "Browse Aspects" button (icon: `BOOK`) that closes this GUI and opens `AspectBrowserGUI`.
 - A "How to craft a Reroller" button (icon: `AMETHYST_SHARD`, *not* a real functional Reroller — a plain
   undecorated stack so it can never be confused with or mistaken for a real one) whose lore spells out the
