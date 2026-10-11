@@ -17,13 +17,17 @@ public final class WindActiveAbility implements Ability {
         double upwardVelocity = definition.getDouble("active.upward-velocity", 1.0);
         double forwardVelocity = definition.getDouble("active.forward-velocity", 0.6);
 
-        double yawRadians = Math.toRadians(player.getLocation().getYaw());
-        Vector horizontal = new Vector(-Math.sin(yawRadians), 0, Math.cos(yawRadians));
+        Vector horizontal = horizontalFromYaw(player.getLocation().getYaw());
         Vector impulse = horizontal.multiply(forwardVelocity).setY(upwardVelocity);
         player.setVelocity(impulse);
 
         SoundUtil.play(player, "entity.bat.takeoff", 1.0f, 1.0f, context.plugin().getLogger());
         ParticleUtil.spawn(player.getLocation(), "CLOUD", 20, context.plugin().getLogger());
         return true;
+    }
+
+    static Vector horizontalFromYaw(float yawDegrees) {
+        double yawRadians = Math.toRadians(yawDegrees);
+        return new Vector(-Math.sin(yawRadians), 0, Math.cos(yawRadians));
     }
 }
