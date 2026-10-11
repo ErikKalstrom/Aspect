@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AspectsConfigParserTest {
@@ -337,5 +338,26 @@ class AspectsConfigParserTest {
 
         assertTrue(errors.stream().anyMatch(e -> e.contains("must not be an air material")));
         assertEquals(org.bukkit.Material.STONE, aspects.get("fire").icon());
+    }
+
+    @Test
+    void parseGeneral_defaultsResetImmediateReassignToTrue() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(""));
+        List<String> errors = new ArrayList<>();
+
+        GeneralConfig config = AspectsConfigParser.parseGeneral(yml, errors);
+
+        assertTrue(config.resetImmediateReassign());
+    }
+
+    @Test
+    void parseGeneral_readsResetImmediateReassignFalse() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "reset:\n  immediate-reassign: false\n"));
+        List<String> errors = new ArrayList<>();
+
+        GeneralConfig config = AspectsConfigParser.parseGeneral(yml, errors);
+
+        assertFalse(config.resetImmediateReassign());
     }
 }

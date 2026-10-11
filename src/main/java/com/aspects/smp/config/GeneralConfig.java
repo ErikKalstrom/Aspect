@@ -11,6 +11,7 @@ public record GeneralConfig(
         int firstJoinParticleCount,
         List<String> blockedWorlds,
         boolean excludeCurrentOnReroll,
-        boolean revealAnimationEnabled
+        boolean revealAnimationEnabled,
+        boolean resetImmediateReassign
 ) {
 }

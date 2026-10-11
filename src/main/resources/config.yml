@@ -17,3 +17,10 @@ world-restrictions:
 reroll:
   exclude-current-aspect: true
   reveal-animation-enabled: true
+
+reset:
+  # When true, /aspects admin reset <player> immediately assigns a new random Aspect (it may be the
+  # same Aspect again — unlike a reroll, a reset does not exclude the player's current Aspect).
+  # When false, the player's Aspect data is cleared entirely and they receive a new random Aspect
+  # the next time they join, the same way a brand-new player would.
+  immediate-reassign: true
