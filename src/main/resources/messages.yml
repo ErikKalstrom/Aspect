@@ -25,3 +25,8 @@ gui:
     current-aspect-lore: "<gray>This Aspect will be replaced.</gray>"
     confirm-name: "<green>Confirm Reroll</green>"
     cancel-name: "<red>Cancel</red>"
+  details:
+    back-name: "<yellow>« Back</yellow>"
+    passive-label: "<gray>Passive:</gray>"
+    active-label: "<gray>Active:</gray>"
+    cooldown-label: "<gray>Cooldown:</gray>"
