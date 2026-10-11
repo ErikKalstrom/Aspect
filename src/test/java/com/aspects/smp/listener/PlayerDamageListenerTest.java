@@ -5,6 +5,7 @@ import com.aspects.smp.ability.PassiveAbility;
 import com.aspects.smp.aspect.Aspect;
 import com.aspects.smp.aspect.AspectDefinition;
 import com.aspects.smp.aspect.AspectRarity;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +30,7 @@ class PlayerDamageListenerTest {
 
     private Aspect aspect(String id, Map<String, Object> settings) {
         return new Aspect(
-                new AspectDefinition(id, id, "", AspectRarity.COMMON, 10, true, settings),
+                new AspectDefinition(id, id, "", AspectRarity.COMMON, 10, true, Material.STONE, settings),
                 NO_OP_PASSIVE, NO_OP_ACTIVE);
     }
 

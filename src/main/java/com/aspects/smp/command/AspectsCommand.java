@@ -42,7 +42,8 @@ public final class AspectsCommand implements CommandExecutor {
         }
         player.sendMessage(MessageUtil.parse("<dark_purple>Aspect:</dark_purple> " + aspect.definition().displayName()));
         player.sendMessage(MessageUtil.parse(
-                "<dark_purple>Rarity:</dark_purple> <white>" + aspect.definition().rarity().name() + "</white>"));
+                "<dark_purple>Rarity:</dark_purple> <" + aspect.definition().rarity().color() + ">" +
+                        aspect.definition().rarity().name() + "</" + aspect.definition().rarity().color() + ">"));
         player.sendMessage(MessageUtil.parse(
                 "<dark_purple>Description:</dark_purple> <white>" + aspect.definition().description() + "</white>"));
         return true;

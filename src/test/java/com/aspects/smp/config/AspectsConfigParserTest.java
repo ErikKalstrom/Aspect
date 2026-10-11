@@ -280,4 +280,47 @@ class AspectsConfigParserTest {
 
         assertTrue(errors.stream().anyMatch(e -> e.contains("is not used anywhere in the pattern")));
     }
+
+    @Test
+    void parseAspects_parsesValidIcon() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "aspects:\n" +
+                "  fire:\n" +
+                "    enabled: true\n" +
+                "    icon: BLAZE_POWDER\n"));
+        List<String> errors = new ArrayList<>();
+
+        Map<String, AspectDefinition> aspects = AspectsConfigParser.parseAspects(yml, errors);
+
+        assertTrue(errors.isEmpty());
+        assertEquals(org.bukkit.Material.BLAZE_POWDER, aspects.get("fire").icon());
+    }
+
+    @Test
+    void parseAspects_rejectsUnknownIcon() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "aspects:\n" +
+                "  fire:\n" +
+                "    enabled: true\n" +
+                "    icon: NOT_A_REAL_MATERIAL\n"));
+        List<String> errors = new ArrayList<>();
+
+        AspectsConfigParser.parseAspects(yml, errors);
+
+        assertTrue(errors.stream().anyMatch(e -> e.contains("icon") && e.contains("fire")));
+    }
+
+    @Test
+    void parseAspects_defaultsIconToStoneWhenMissing() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "aspects:\n" +
+                "  fire:\n" +
+                "    enabled: true\n"));
+        List<String> errors = new ArrayList<>();
+
+        Map<String, AspectDefinition> aspects = AspectsConfigParser.parseAspects(yml, errors);
+
+        assertTrue(errors.isEmpty());
+        assertEquals(org.bukkit.Material.STONE, aspects.get("fire").icon());
+    }
 }

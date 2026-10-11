@@ -2,6 +2,7 @@ package com.aspects.smp.aspect;
 
 import com.aspects.smp.ability.Ability;
 import com.aspects.smp.ability.PassiveAbility;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +29,7 @@ class AspectAssignmentServiceTest {
 
     private Aspect aspect(String id, boolean enabled, double weight) {
         return new Aspect(
-                new AspectDefinition(id, id, "", AspectRarity.COMMON, weight, enabled, Map.of()),
+                new AspectDefinition(id, id, "", AspectRarity.COMMON, weight, enabled, Material.STONE, Map.of()),
                 NO_OP_PASSIVE, NO_OP_ACTIVE);
     }
 

@@ -56,6 +56,7 @@ public final class AspectsConfigParser {
             String description = aspectSection.getString("description", "");
             String rarityRaw = aspectSection.getString("rarity", "COMMON");
             double weight = aspectSection.getDouble("weight", 0);
+            String iconRaw = aspectSection.getString("icon", "STONE");
 
             AspectRarity rarity;
             try {
@@ -68,9 +69,14 @@ public final class AspectsConfigParser {
                 errors.add("aspects." + id + ".weight must not be negative");
                 weight = 0;
             }
+            Material icon = Material.matchMaterial(iconRaw);
+            if (icon == null) {
+                errors.add("aspects." + id + ".icon has unknown material '" + iconRaw + "'");
+                icon = Material.STONE;
+            }
 
             Map<String, Object> settings = aspectSection.getValues(true);
-            result.put(id, new AspectDefinition(id, displayName, description, rarity, weight, enabled, settings));
+            result.put(id, new AspectDefinition(id, displayName, description, rarity, weight, enabled, icon, settings));
         }
         return result;
     }

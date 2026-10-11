@@ -1,5 +1,7 @@
 package com.aspects.smp.aspect;
 
+import org.bukkit.Material;
+
 import java.util.Map;
 
 public record AspectDefinition(
@@ -9,6 +11,7 @@ public record AspectDefinition(
         AspectRarity rarity,
         double weight,
         boolean enabled,
+        Material icon,
         Map<String, Object> settings
 ) {
 
