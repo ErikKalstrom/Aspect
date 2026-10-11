@@ -4,6 +4,7 @@ main: com.aspects.smp.AspectsPlugin
 api-version: '1.21'
 author: erikkalstrom
 description: Elemental Aspect powers for SMP servers.
+softdepend: [WorldGuard]
 
 commands:
   aspects:
