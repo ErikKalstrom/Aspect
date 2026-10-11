@@ -37,6 +37,10 @@ gui:
     cooldown-label: "<gray>Cooldown:</gray>"
   browser:
     back-name: "<yellow>« Back</yellow>"
+  selector:
+    title: "<dark_purple>Choose Your Aspect</dark_purple>"
+    choose-lore: "<gray>Click to become this Aspect.</gray>"
+    cancel-name: "<red>Cancel</red>"
   main:
     title: "<dark_purple>Your Aspect</dark_purple>"
     browse-name: "<aqua>Browse Aspects</aqua>"
