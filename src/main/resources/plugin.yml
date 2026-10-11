@@ -1,0 +1,26 @@
+name: Aspects
+version: '1.0.0-SNAPSHOT'
+main: com.aspects.smp.AspectsPlugin
+api-version: '1.21'
+author: erikkalstrom
+description: Elemental Aspect powers for SMP servers.
+
+commands:
+  aspects:
+    description: Manage your Aspect.
+    aliases: [aspect]
+    permission: aspects.use
+
+permissions:
+  aspects.use:
+    description: Use player Aspect commands and abilities.
+    default: true
+  aspects.admin:
+    description: Access administrative Aspect commands.
+    default: op
+  aspects.admin.set:
+    description: Assign a specific Aspect to a player.
+    default: op
+  aspects.admin.reroll:
+    description: Force-reroll a player's Aspect.
+    default: op

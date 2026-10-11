@@ -1,1 +1,6 @@
 .superpowers/
+target/
+*.class
+*.db
+.idea/
+*.iml
