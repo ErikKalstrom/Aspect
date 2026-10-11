@@ -47,6 +47,7 @@ public final class PlayerDamageListener implements Listener {
             return 1.0;
         }
         int reductionPercent = aspect.definition().getInt("passive.reduction-percent", 50);
+        reductionPercent = Math.max(0, Math.min(100, reductionPercent));
         return 1.0 - (reductionPercent / 100.0);
     }
 }

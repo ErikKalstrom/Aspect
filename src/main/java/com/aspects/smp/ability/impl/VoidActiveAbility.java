@@ -32,12 +32,16 @@ public final class VoidActiveAbility implements Ability {
             return false;
         }
 
-        Location destination = origin.clone().add(horizontal.clone().multiply(safeDistance));
-        destination.setYaw(origin.getYaw());
-        destination.setPitch(origin.getPitch());
+        double destX = Math.floor(origin.getX() + horizontal.getX() * safeDistance) + 0.5;
+        double destY = Math.floor(origin.getY() + horizontal.getY() * safeDistance);
+        double destZ = Math.floor(origin.getZ() + horizontal.getZ() * safeDistance) + 0.5;
+        Location destination = new Location(world, destX, destY, destZ, origin.getYaw(), origin.getPitch());
 
         ParticleUtil.spawn(origin, "PORTAL", 30, context.plugin().getLogger());
-        player.teleport(destination);
+        boolean teleported = player.teleport(destination);
+        if (!teleported) {
+            return false;
+        }
         ParticleUtil.spawn(destination, "PORTAL", 30, context.plugin().getLogger());
         SoundUtil.play(player, "entity.enderman.teleport", 1.0f, 1.0f, context.plugin().getLogger());
         return true;
@@ -58,12 +62,14 @@ public final class VoidActiveAbility implements Ability {
             return false;
         }
         int y = point.getBlockY();
-        if (y < world.getMinHeight() || y - 1 < world.getMinHeight() || y + 1 >= world.getMaxHeight()) {
+        if (y - 1 < world.getMinHeight() || y + 1 >= world.getMaxHeight()) {
             return false;
         }
-        Material feet = point.getBlock().getType();
-        Material head = point.clone().add(0, 1, 0).getBlock().getType();
-        Material floor = point.clone().add(0, -1, 0).getBlock().getType();
+        int bx = point.getBlockX();
+        int bz = point.getBlockZ();
+        Material feet = world.getBlockAt(bx, y, bz).getType();
+        Material head = world.getBlockAt(bx, y + 1, bz).getType();
+        Material floor = world.getBlockAt(bx, y - 1, bz).getType();
         return !feet.isSolid() && !head.isSolid() && feet != Material.LAVA && head != Material.LAVA
                 && floor != Material.LAVA;
     }

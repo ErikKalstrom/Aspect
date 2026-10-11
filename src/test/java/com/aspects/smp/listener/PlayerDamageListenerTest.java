@@ -91,6 +91,22 @@ class PlayerDamageListenerTest {
     }
 
     @Test
+    void fallDamageMultiplier_clampsAboveHundredPercent_toZeroMultiplier() {
+        Aspect voidAspect = aspect("void",
+                Map.of("passive.fall-damage-reduction", true, "passive.reduction-percent", 150));
+
+        assertEquals(0.0, PlayerDamageListener.fallDamageMultiplier(voidAspect), 1e-9);
+    }
+
+    @Test
+    void fallDamageMultiplier_clampsNegativePercent_toFullMultiplier() {
+        Aspect voidAspect = aspect("void",
+                Map.of("passive.fall-damage-reduction", true, "passive.reduction-percent", -20));
+
+        assertEquals(1.0, PlayerDamageListener.fallDamageMultiplier(voidAspect), 1e-9);
+    }
+
+    @Test
     void fallDamageMultiplier_returnsOne_forFireEvenWithEmptySettings() {
         Aspect fire = aspect("fire", Map.of());
 
