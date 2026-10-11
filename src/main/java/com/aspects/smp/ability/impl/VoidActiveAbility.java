@@ -26,7 +26,7 @@ public final class VoidActiveAbility implements Ability {
         World world = player.getWorld();
         Vector horizontal = DirectionUtil.horizontalFromYaw(origin.getYaw());
 
-        IntPredicate isSafeAtDistance = distance -> isSafeDestination(world, origin, horizontal, distance);
+        IntPredicate isSafeAtDistance = distance -> isSafeDestination(context, world, origin, horizontal, distance);
         int safeDistance = pickSafeDistance(maxDistance, isSafeAtDistance);
         if (safeDistance == 0) {
             return false;
@@ -56,7 +56,7 @@ public final class VoidActiveAbility implements Ability {
         return 0;
     }
 
-    private boolean isSafeDestination(World world, Location origin, Vector horizontal, int distance) {
+    private boolean isSafeDestination(AbilityContext context, World world, Location origin, Vector horizontal, int distance) {
         Location point = origin.clone().add(horizontal.clone().multiply(distance));
         if (!world.getWorldBorder().isInside(point)) {
             return false;
@@ -70,7 +70,9 @@ public final class VoidActiveAbility implements Ability {
         Material feet = world.getBlockAt(bx, y, bz).getType();
         Material head = world.getBlockAt(bx, y + 1, bz).getType();
         Material floor = world.getBlockAt(bx, y - 1, bz).getType();
-        return !feet.isSolid() && !head.isSolid() && feet != Material.LAVA && head != Material.LAVA
-                && floor != Material.LAVA;
+        if (feet.isSolid() || head.isSolid() || feet == Material.LAVA || head == Material.LAVA || floor == Material.LAVA) {
+            return false;
+        }
+        return context.plugin().getWorldGuardIntegration().isAbilityAllowed(point, context.player());
     }
 }
