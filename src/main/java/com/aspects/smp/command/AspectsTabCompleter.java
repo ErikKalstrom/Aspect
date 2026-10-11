@@ -22,12 +22,27 @@ public final class AspectsTabCompleter implements TabCompleter {
         List<String> options = new ArrayList<>();
         if (args.length == 1) {
             options.add("info");
+            options.add("list");
+            options.add("inspect");
+            options.add("help");
             options.add("admin");
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("inspect")) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                options.add(player.getName());
+            }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("admin")) {
             options.add("set");
             options.add("reroll");
+            options.add("reset");
+            options.add("give-reroller");
+            options.add("clear-cooldown");
+            options.add("reload");
+            options.add("list");
+            options.add("debug");
         } else if (args.length == 3 && args[0].equalsIgnoreCase("admin")
-                && (args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("reroll"))) {
+                && (args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("reroll")
+                        || args[1].equalsIgnoreCase("reset") || args[1].equalsIgnoreCase("give-reroller")
+                        || args[1].equalsIgnoreCase("clear-cooldown") || args[1].equalsIgnoreCase("debug"))) {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 options.add(player.getName());
             }
