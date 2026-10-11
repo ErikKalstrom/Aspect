@@ -48,3 +48,9 @@ gui:
     craft-info-disabled: "<red>Rerolling via crafting is currently disabled on this server.</red>"
     cooldown-ready: "<green>Ready</green>"
     cooldown-remaining: "<red>{seconds}s remaining</red>"
+  admin-assign:
+    title: "<dark_purple>Assign Aspect</dark_purple>"
+    choose-lore: "<gray>Click to assign this Aspect.</gray>"
+    back-name: "<yellow>« Back</yellow>"
+  admin-player:
+    player-offline: "<red>That player is no longer online.</red>"
