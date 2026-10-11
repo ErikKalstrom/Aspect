@@ -58,7 +58,7 @@ public final class VoidActiveAbility implements Ability {
             return false;
         }
         int y = point.getBlockY();
-        if (y < world.getMinHeight() || y + 1 > world.getMaxHeight()) {
+        if (y < world.getMinHeight() || y - 1 < world.getMinHeight() || y + 1 >= world.getMaxHeight()) {
             return false;
         }
         Material feet = point.getBlock().getType();
