@@ -4,7 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.sql.Connection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,6 +14,7 @@ import java.util.logging.Logger;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SQLitePlayerDataRepositoryTest {
@@ -57,6 +60,24 @@ class SQLitePlayerDataRepositoryTest {
         Optional<PlayerAspectData> loaded = repo.loadPlayer(UUID.randomUUID()).get();
         assertTrue(loaded.isEmpty());
         repo.close();
+    }
+
+    @Test
+    void loadPlayer_whenUnderlyingConnectionIsBroken_completesExceptionally() throws Exception {
+        // A transient DB failure (e.g. a locked file or disk hiccup) must surface as a failed
+        // future, never silently as Optional.empty() — otherwise AspectManager can mistake it
+        // for "new player" and overwrite a real saved Aspect. We force a SQLException here by
+        // closing the connection out from under the repository (without shutting down its
+        // executor, which is what the public close() method also does), so the DB worker thread
+        // genuinely hits a SQLException instead of being rejected before it ever runs.
+        SQLitePlayerDataRepository repo = newRepository();
+        UUID playerId = UUID.randomUUID();
+
+        Field connectionField = SQLitePlayerDataRepository.class.getDeclaredField("connection");
+        connectionField.setAccessible(true);
+        ((Connection) connectionField.get(repo)).close();
+
+        assertThrows(ExecutionException.class, () -> repo.loadPlayer(playerId).get());
     }
 
     @Test

@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +58,7 @@ public final class SQLitePlayerDataRepository implements PlayerDataRepository {
                 }
             } catch (SQLException e) {
                 logger.severe("Failed to load player data for " + playerId + ": " + e.getMessage());
-                return Optional.<PlayerAspectData>empty();
+                throw new CompletionException(e);
             }
         }, executor);
     }
