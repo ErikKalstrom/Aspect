@@ -1,0 +1,17 @@
+prefix: "<dark_purple>✦</dark_purple> "
+
+first-join:
+  line1: "<white>YOUR ASPECT HAS AWAKENED</white>"
+  line2: "<gray>Aspect:</gray> {aspect}"
+  line3: "<gray>Rarity:</gray> {rarity}"
+
+ability:
+  no-aspect: "<red>You do not have an Aspect assigned yet.</red>"
+  aspect-disabled: "<red>Your Aspect is currently disabled on this server.</red>"
+  world-blocked: "<red>Abilities cannot be used in this world.</red>"
+  on-cooldown: "<red>Your ability is on cooldown for {seconds}s.</red>"
+
+reroll:
+  changed: "<gradient:dark_purple:aqua>Your Aspect has changed!</gradient>"
+  previous: "<gray>Previous:</gray> {old}"
+  new: "<gray>New Aspect:</gray> {new}"
