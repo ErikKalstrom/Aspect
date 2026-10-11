@@ -107,6 +107,7 @@ public final class AspectsPlugin extends JavaPlugin {
         rerollerRecipeManager = new RerollerRecipeManager(this);
         aspectManager = new AspectManager(aspectRegistry, new AspectAssignmentService(), dataRepository,
                 cooldownManager, temporaryEffectManager, getLogger(), configManager.general().excludeCurrentOnReroll(),
+                configManager.general().resetImmediateReassign(),
                 runnable -> getServer().getScheduler().runTask(this, runnable));
 
         ProtectionGate protectionGate = new ProtectionGate(configManager.general().blockedWorlds());

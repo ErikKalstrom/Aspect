@@ -22,6 +22,7 @@ public final class AspectManager {
     private final TemporaryEffectManager temporaryEffectManager;
     private final Logger logger;
     private final boolean excludeCurrentOnReroll;
+    private final boolean resetImmediateReassign;
     private final Executor mainThreadExecutor;
 
     private final Map<UUID, Aspect> assigned = new ConcurrentHashMap<>();
@@ -29,7 +30,8 @@ public final class AspectManager {
     public AspectManager(AspectRegistry registry, AspectAssignmentService assignmentService,
                           PlayerDataRepository repository, AbilityCooldownManager cooldownManager,
                           TemporaryEffectManager temporaryEffectManager, Logger logger,
-                          boolean excludeCurrentOnReroll, Executor mainThreadExecutor) {
+                          boolean excludeCurrentOnReroll, boolean resetImmediateReassign,
+                          Executor mainThreadExecutor) {
         this.registry = registry;
         this.assignmentService = assignmentService;
         this.repository = repository;
@@ -37,6 +39,7 @@ public final class AspectManager {
         this.temporaryEffectManager = temporaryEffectManager;
         this.logger = logger;
         this.excludeCurrentOnReroll = excludeCurrentOnReroll;
+        this.resetImmediateReassign = resetImmediateReassign;
         this.mainThreadExecutor = mainThreadExecutor;
     }
 
@@ -134,6 +137,20 @@ public final class AspectManager {
 
     public Optional<Aspect> rerollViaItem(Player player) {
         return performReroll(player, excludeCurrentOnReroll);
+    }
+
+    public Optional<Aspect> resetAspect(Player player) {
+        if (resetImmediateReassign) {
+            return performReroll(player, false);
+        }
+        Aspect previous = assigned.remove(player.getUniqueId());
+        if (previous != null) {
+            previous.passive().onUnequip(player);
+        }
+        repository.deletePlayer(player.getUniqueId());
+        cooldownManager.clearCache(player.getUniqueId());
+        temporaryEffectManager.clear(player.getUniqueId());
+        return Optional.empty();
     }
 
     private Optional<Aspect> performReroll(Player player, boolean excludeCurrent) {
