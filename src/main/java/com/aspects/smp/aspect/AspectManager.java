@@ -129,8 +129,16 @@ public final class AspectManager {
     }
 
     public Optional<Aspect> adminReroll(Player player) {
+        return performReroll(player, excludeCurrentOnReroll);
+    }
+
+    public Optional<Aspect> rerollViaItem(Player player) {
+        return performReroll(player, excludeCurrentOnReroll);
+    }
+
+    private Optional<Aspect> performReroll(Player player, boolean excludeCurrent) {
         Aspect previous = assigned.get(player.getUniqueId());
-        String excludeId = excludeCurrentOnReroll && previous != null ? previous.id() : null;
+        String excludeId = excludeCurrent && previous != null ? previous.id() : null;
         Optional<Aspect> picked = assignmentService.selectRandom(new ArrayList<>(registry.enabled()), excludeId);
         if (picked.isEmpty()) {
             return Optional.empty();
