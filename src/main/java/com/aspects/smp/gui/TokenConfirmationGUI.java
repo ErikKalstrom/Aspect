@@ -114,6 +114,10 @@ public final class TokenConfirmationGUI implements AspectsGuiHolder {
             return;
         }
         try {
+            if (!player.hasPermission("aspects.admin.give")) {
+                player.closeInventory();
+                return;
+            }
             ItemStack held = player.getInventory().getItem(handSlot);
             Optional<String> heldAspectId = held == null
                     ? Optional.empty()

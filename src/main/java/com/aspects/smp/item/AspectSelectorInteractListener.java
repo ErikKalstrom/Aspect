@@ -23,14 +23,25 @@ public final class AspectSelectorInteractListener implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) {
-            return;
-        }
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
-        ItemStack item = event.getItem();
         Player player = event.getPlayer();
+
+        if (event.getHand() == EquipmentSlot.OFF_HAND) {
+            ItemStack offHandItem = player.getInventory().getItemInOffHand();
+            boolean isSelectorItem = plugin.getCustomItemManager().getSelectorTokenAspectId(offHandItem).isPresent()
+                    || plugin.getCustomItemManager().isGenericSelector(offHandItem);
+            if (isSelectorItem) {
+                event.setCancelled(true);
+            }
+            return;
+        }
+
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+        ItemStack item = event.getItem();
 
         Optional<String> tokenAspectId = plugin.getCustomItemManager().getSelectorTokenAspectId(item);
         if (tokenAspectId.isPresent()) {

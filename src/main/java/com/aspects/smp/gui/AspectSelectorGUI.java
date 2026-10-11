@@ -125,6 +125,10 @@ public final class AspectSelectorGUI implements AspectsGuiHolder {
             return;
         }
         try {
+            if (!player.hasPermission("aspects.admin.selector")) {
+                player.closeInventory();
+                return;
+            }
             ItemStack held = player.getInventory().getItem(handSlot);
             if (held == null || !plugin.getCustomItemManager().isGenericSelector(held)) {
                 player.closeInventory();
