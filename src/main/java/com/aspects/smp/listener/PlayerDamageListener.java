@@ -26,8 +26,12 @@ public final class PlayerDamageListener implements Listener {
         if (aspect == null) {
             return;
         }
-        if (aspect.definition().getBoolean("passive.freeze-immunity", true)) {
+        if (cancelsFreezeDamage(aspect)) {
             event.setCancelled(true);
         }
+    }
+
+    static boolean cancelsFreezeDamage(Aspect aspect) {
+        return aspect.id().equals("frost") && aspect.definition().getBoolean("passive.freeze-immunity", true);
     }
 }
