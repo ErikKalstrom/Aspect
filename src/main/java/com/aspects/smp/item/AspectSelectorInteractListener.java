@@ -5,6 +5,7 @@ import com.aspects.smp.gui.AspectSelectorGUI;
 import com.aspects.smp.gui.TokenConfirmationGUI;
 import com.aspects.smp.util.MessageUtil;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -34,6 +35,7 @@ public final class AspectSelectorInteractListener implements Listener {
                     || plugin.getCustomItemManager().isGenericSelector(offHandItem);
             if (isSelectorItem) {
                 event.setCancelled(true);
+                event.setUseItemInHand(Event.Result.DENY);
             }
             return;
         }
@@ -46,6 +48,7 @@ public final class AspectSelectorInteractListener implements Listener {
         Optional<String> tokenAspectId = plugin.getCustomItemManager().getSelectorTokenAspectId(item);
         if (tokenAspectId.isPresent()) {
             event.setCancelled(true);
+            event.setUseItemInHand(Event.Result.DENY);
             if (!player.hasPermission("aspects.admin.give")) {
                 player.sendMessage(MessageUtil.parse("<red>You do not have permission to use this item.</red>"));
                 return;
@@ -57,6 +60,7 @@ public final class AspectSelectorInteractListener implements Listener {
 
         if (plugin.getCustomItemManager().isGenericSelector(item)) {
             event.setCancelled(true);
+            event.setUseItemInHand(Event.Result.DENY);
             if (!player.hasPermission("aspects.admin.selector")) {
                 player.sendMessage(MessageUtil.parse("<red>You do not have permission to use this item.</red>"));
                 return;
