@@ -7,6 +7,8 @@ import com.aspects.smp.ability.ActivationListener;
 import com.aspects.smp.ability.PassiveAbility;
 import com.aspects.smp.ability.ProtectionGate;
 import com.aspects.smp.ability.TemporaryEffectManager;
+import com.aspects.smp.ability.impl.BloodActiveAbility;
+import com.aspects.smp.ability.impl.BloodPassiveAbility;
 import com.aspects.smp.ability.impl.EarthActiveAbility;
 import com.aspects.smp.ability.impl.EarthPassiveAbility;
 import com.aspects.smp.ability.impl.FireActiveAbility;
@@ -54,7 +56,8 @@ public final class AspectsPlugin extends JavaPlugin {
             "wind", WindPassiveAbility::new,
             "earth", EarthPassiveAbility::new,
             "thunder", ThunderPassiveAbility::new,
-            "void", VoidPassiveAbility::new
+            "void", VoidPassiveAbility::new,
+            "blood", BloodPassiveAbility::new
     );
     private static final Map<String, Supplier<Ability>> ACTIVE_FACTORIES = Map.of(
             "fire", FireActiveAbility::new,
@@ -63,7 +66,8 @@ public final class AspectsPlugin extends JavaPlugin {
             "wind", WindActiveAbility::new,
             "earth", EarthActiveAbility::new,
             "thunder", ThunderActiveAbility::new,
-            "void", VoidActiveAbility::new
+            "void", VoidActiveAbility::new,
+            "blood", BloodActiveAbility::new
     );
     private ConfigManager configManager;
     private PlayerDataRepository dataRepository;
