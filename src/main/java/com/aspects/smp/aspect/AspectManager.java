@@ -1,6 +1,7 @@
 package com.aspects.smp.aspect;
 
 import com.aspects.smp.ability.AbilityCooldownManager;
+import com.aspects.smp.ability.TemporaryEffectManager;
 import com.aspects.smp.data.PlayerAspectData;
 import com.aspects.smp.data.PlayerDataRepository;
 import org.bukkit.entity.Player;
@@ -18,6 +19,7 @@ public final class AspectManager {
     private final AspectAssignmentService assignmentService;
     private final PlayerDataRepository repository;
     private final AbilityCooldownManager cooldownManager;
+    private final TemporaryEffectManager temporaryEffectManager;
     private final Logger logger;
     private final boolean excludeCurrentOnReroll;
     private final Executor mainThreadExecutor;
@@ -26,11 +28,13 @@ public final class AspectManager {
 
     public AspectManager(AspectRegistry registry, AspectAssignmentService assignmentService,
                           PlayerDataRepository repository, AbilityCooldownManager cooldownManager,
-                          Logger logger, boolean excludeCurrentOnReroll, Executor mainThreadExecutor) {
+                          TemporaryEffectManager temporaryEffectManager, Logger logger,
+                          boolean excludeCurrentOnReroll, Executor mainThreadExecutor) {
         this.registry = registry;
         this.assignmentService = assignmentService;
         this.repository = repository;
         this.cooldownManager = cooldownManager;
+        this.temporaryEffectManager = temporaryEffectManager;
         this.logger = logger;
         this.excludeCurrentOnReroll = excludeCurrentOnReroll;
         this.mainThreadExecutor = mainThreadExecutor;
@@ -104,6 +108,7 @@ public final class AspectManager {
             aspect.passive().onUnequip(player);
         }
         cooldownManager.clearCache(player.getUniqueId());
+        temporaryEffectManager.clear(player.getUniqueId());
     }
 
     public Optional<Aspect> adminSet(Player player, String aspectId) {
@@ -118,6 +123,7 @@ public final class AspectManager {
         assigned.put(player.getUniqueId(), aspect);
         repository.savePlayer(new PlayerAspectData(player.getUniqueId(), aspect.id(), System.currentTimeMillis()));
         cooldownManager.clearCache(player.getUniqueId());
+        temporaryEffectManager.clear(player.getUniqueId());
         aspect.passive().onEquip(player, aspect.definition());
         return Optional.of(aspect);
     }
@@ -136,6 +142,7 @@ public final class AspectManager {
         assigned.put(player.getUniqueId(), aspect);
         repository.savePlayer(new PlayerAspectData(player.getUniqueId(), aspect.id(), System.currentTimeMillis()));
         cooldownManager.clearCache(player.getUniqueId());
+        temporaryEffectManager.clear(player.getUniqueId());
         aspect.passive().onEquip(player, aspect.definition());
         return Optional.of(aspect);
     }

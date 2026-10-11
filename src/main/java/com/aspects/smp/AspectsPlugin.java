@@ -6,6 +6,7 @@ import com.aspects.smp.ability.AbilityManager;
 import com.aspects.smp.ability.ActivationListener;
 import com.aspects.smp.ability.PassiveAbility;
 import com.aspects.smp.ability.ProtectionGate;
+import com.aspects.smp.ability.TemporaryEffectManager;
 import com.aspects.smp.ability.impl.EarthActiveAbility;
 import com.aspects.smp.ability.impl.EarthPassiveAbility;
 import com.aspects.smp.ability.impl.FireActiveAbility;
@@ -68,6 +69,7 @@ public final class AspectsPlugin extends JavaPlugin {
     private AspectRegistry aspectRegistry;
     private AspectManager aspectManager;
     private AbilityCooldownManager cooldownManager;
+    private TemporaryEffectManager temporaryEffectManager;
     private AbilityManager abilityManager;
 
     @Override
@@ -88,8 +90,9 @@ public final class AspectsPlugin extends JavaPlugin {
         aspectRegistry = buildRegistry(configManager.aspectDefinitions());
 
         cooldownManager = new AbilityCooldownManager(dataRepository);
+        temporaryEffectManager = new TemporaryEffectManager();
         aspectManager = new AspectManager(aspectRegistry, new AspectAssignmentService(), dataRepository,
-                cooldownManager, getLogger(), configManager.general().excludeCurrentOnReroll(),
+                cooldownManager, temporaryEffectManager, getLogger(), configManager.general().excludeCurrentOnReroll(),
                 runnable -> getServer().getScheduler().runTask(this, runnable));
 
         ProtectionGate protectionGate = new ProtectionGate(configManager.general().blockedWorlds());
@@ -150,5 +153,9 @@ public final class AspectsPlugin extends JavaPlugin {
 
     public AspectManager getAspectManager() {
         return aspectManager;
+    }
+
+    public TemporaryEffectManager getTemporaryEffectManager() {
+        return temporaryEffectManager;
     }
 }
