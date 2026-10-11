@@ -15,12 +15,33 @@ permissions:
   aspects.use:
     description: Use player Aspect commands and abilities.
     default: true
+  aspects.gui:
+    description: Open the player Aspects menu.
+    default: true
+  aspects.inspect:
+    description: Inspect another player's Aspect.
+    default: op
   aspects.admin:
     description: Access administrative Aspect commands.
+    default: op
+  aspects.admin.give:
+    description: Give Aspect Reroller items or Aspect Selection tokens to players.
     default: op
   aspects.admin.set:
     description: Assign a specific Aspect to a player.
     default: op
   aspects.admin.reroll:
     description: Force-reroll a player's Aspect.
+    default: op
+  aspects.admin.reset:
+    description: Reset a player's Aspect and related state.
+    default: op
+  aspects.admin.cooldown:
+    description: Clear a player's ability cooldowns.
+    default: op
+  aspects.admin.reload:
+    description: Reload the Aspects plugin configuration.
+    default: op
+  aspects.admin.debug:
+    description: View diagnostic information about a player's Aspect state.
     default: op
