@@ -16,6 +16,8 @@ import com.aspects.smp.ability.impl.ThunderActiveAbility;
 import com.aspects.smp.ability.impl.ThunderPassiveAbility;
 import com.aspects.smp.ability.impl.TideActiveAbility;
 import com.aspects.smp.ability.impl.TidePassiveAbility;
+import com.aspects.smp.ability.impl.VoidActiveAbility;
+import com.aspects.smp.ability.impl.VoidPassiveAbility;
 import com.aspects.smp.ability.impl.WindActiveAbility;
 import com.aspects.smp.ability.impl.WindPassiveAbility;
 import com.aspects.smp.aspect.Aspect;
@@ -49,7 +51,8 @@ public final class AspectsPlugin extends JavaPlugin {
             "frost", FrostPassiveAbility::new,
             "wind", WindPassiveAbility::new,
             "earth", EarthPassiveAbility::new,
-            "thunder", ThunderPassiveAbility::new
+            "thunder", ThunderPassiveAbility::new,
+            "void", VoidPassiveAbility::new
     );
     private static final Map<String, Supplier<Ability>> ACTIVE_FACTORIES = Map.of(
             "fire", FireActiveAbility::new,
@@ -57,7 +60,8 @@ public final class AspectsPlugin extends JavaPlugin {
             "frost", FrostActiveAbility::new,
             "wind", WindActiveAbility::new,
             "earth", EarthActiveAbility::new,
-            "thunder", ThunderActiveAbility::new
+            "thunder", ThunderActiveAbility::new,
+            "void", VoidActiveAbility::new
     );
     private ConfigManager configManager;
     private PlayerDataRepository dataRepository;
