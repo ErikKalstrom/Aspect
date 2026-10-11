@@ -119,4 +119,40 @@ class PlayerDamageListenerTest {
 
         assertEquals(1.0, PlayerDamageListener.fallDamageMultiplier(frost), 1e-9);
     }
+
+    @Test
+    void meleeDamageMultiplier_appliesPassiveBonus_forBloodWithNoBuffActive() {
+        Aspect blood = aspect("blood", Map.of());
+
+        assertEquals(1.1, PlayerDamageListener.meleeDamageMultiplier(blood, false), 1e-9);
+    }
+
+    @Test
+    void meleeDamageMultiplier_appliesPassiveAndActiveBonus_whenBuffActive() {
+        Aspect blood = aspect("blood", Map.of());
+
+        assertEquals(1.3, PlayerDamageListener.meleeDamageMultiplier(blood, true), 1e-9);
+    }
+
+    @Test
+    void meleeDamageMultiplier_returnsOne_whenPassiveFlagDisabledAndBuffInactive() {
+        Aspect blood = aspect("blood", Map.of("passive.melee-damage-bonus", false));
+
+        assertEquals(1.0, PlayerDamageListener.meleeDamageMultiplier(blood, false), 1e-9);
+    }
+
+    @Test
+    void meleeDamageMultiplier_respectsCustomPercentages() {
+        Aspect blood = aspect("blood",
+                Map.of("passive.melee-damage-bonus-percent", 15, "active.bonus-percent", 25));
+
+        assertEquals(1.40, PlayerDamageListener.meleeDamageMultiplier(blood, true), 1e-9);
+    }
+
+    @Test
+    void meleeDamageMultiplier_returnsOne_forFireEvenWithBuffActiveTrue() {
+        Aspect fire = aspect("fire", Map.of());
+
+        assertEquals(1.0, PlayerDamageListener.meleeDamageMultiplier(fire, true), 1e-9);
+    }
 }
