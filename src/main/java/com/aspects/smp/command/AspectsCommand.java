@@ -2,6 +2,7 @@ package com.aspects.smp.command;
 
 import com.aspects.smp.AspectsPlugin;
 import com.aspects.smp.aspect.Aspect;
+import com.aspects.smp.gui.MainAspectGUI;
 import com.aspects.smp.util.MessageUtil;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -22,7 +23,24 @@ public final class AspectsCommand implements CommandExecutor {
         if (args.length > 0 && args[0].equalsIgnoreCase("admin")) {
             return adminCommand.handle(sender, shift(args));
         }
-        return handleInfo(sender);
+        if (args.length > 0 && args[0].equalsIgnoreCase("info")) {
+            return handleInfo(sender);
+        }
+        return handleOpenMenu(sender);
+    }
+
+    private boolean handleOpenMenu(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(MessageUtil.parse(
+                    "<red>Only players can open the Aspects menu. Use /aspects admin debug <player> from console.</red>"));
+            return true;
+        }
+        if (!player.hasPermission("aspects.use")) {
+            sender.sendMessage(MessageUtil.parse("<red>You do not have permission to use this command.</red>"));
+            return true;
+        }
+        new MainAspectGUI(plugin, player).open();
+        return true;
     }
 
     private boolean handleInfo(CommandSender sender) {
