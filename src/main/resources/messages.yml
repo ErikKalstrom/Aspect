@@ -54,6 +54,14 @@ gui:
     back-name: "<yellow>« Back</yellow>"
   admin-player:
     player-offline: "<red>That player is no longer online.</red>"
+    title-prefix: "<dark_purple>Manage: </dark_purple>"
+    current-aspect-lore: "<gray>Current Aspect</gray>"
+    no-aspect: "<red>No Aspect assigned</red>"
+    assign-name: "<yellow>Assign Aspect</yellow>"
+    reroll-name: "<gold>Force Reroll</gold>"
+    give-reroller-name: "<green>Give Reroller</green>"
+    clear-cooldown-name: "<blue>Clear Cooldowns</blue>"
+    back-name: "<yellow>« Back</yellow>"
   admin-reroll-confirm:
     title: "<dark_purple>Force Reroll?</dark_purple>"
     current-aspect-lore: "<gray>This Aspect will be replaced.</gray>"
