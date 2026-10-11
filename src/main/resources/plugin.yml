@@ -27,6 +27,9 @@ permissions:
   aspects.admin.give:
     description: Give Aspect Reroller items or Aspect Selection tokens to players.
     default: op
+  aspects.admin.selector:
+    description: Give a generic Aspect Selector item that lets a player choose their own Aspect.
+    default: op
   aspects.admin.set:
     description: Assign a specific Aspect to a player.
     default: op

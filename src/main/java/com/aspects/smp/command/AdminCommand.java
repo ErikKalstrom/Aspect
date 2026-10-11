@@ -25,7 +25,7 @@ public final class AdminCommand {
     public boolean handle(CommandSender sender, String[] args) {
         if (args.length == 0) {
             sender.sendMessage(MessageUtil.parse(
-                    "<red>Usage: /aspects admin <set|reroll|reset|give-reroller|clear-cooldown|reload|list|debug> ...</red>"));
+                    "<red>Usage: /aspects admin <set|reroll|reset|give-reroller|give|give-selection|clear-cooldown|reload|list|debug> ...</red>"));
             return true;
         }
         String sub = args[0].toLowerCase();
@@ -34,6 +34,8 @@ public final class AdminCommand {
             case "reroll" -> handleReroll(sender, args);
             case "reset" -> handleReset(sender, args);
             case "give-reroller" -> handleGiveReroller(sender, args);
+            case "give" -> handleGive(sender, args);
+            case "give-selection" -> handleGiveSelection(sender, args);
             case "clear-cooldown" -> handleClearCooldown(sender, args);
             case "reload" -> handleReload(sender);
             case "list" -> handleList(sender);
@@ -184,6 +186,63 @@ public final class AdminCommand {
 
     static int clampGiveAmount(int requested) {
         return Math.min(requested, 64);
+    }
+
+    private boolean handleGive(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("aspects.admin.give")) {
+            sender.sendMessage(MessageUtil.parse("<red>You do not have permission to do that.</red>"));
+            return true;
+        }
+        if (args.length < 3) {
+            sender.sendMessage(MessageUtil.parse("<red>Usage: /aspects admin give <player> <aspect></red>"));
+            return true;
+        }
+        Player target = Bukkit.getPlayerExact(args[1]);
+        if (target == null) {
+            sender.sendMessage(MessageUtil.parse("<red>Player '" + args[1] + "' is not online.</red>"));
+            return true;
+        }
+        String aspectId = args[2].toLowerCase();
+        if (plugin.getAspectRegistry().get(aspectId).isEmpty()) {
+            sender.sendMessage(MessageUtil.parse("<red>Unknown Aspect id: " + aspectId + "</red>"));
+            return true;
+        }
+        ItemStack token = plugin.getCustomItemManager().createSelectorToken(aspectId);
+        Map<Integer, ItemStack> leftover = target.getInventory().addItem(token);
+        if (!leftover.isEmpty()) {
+            target.getWorld().dropItemNaturally(target.getLocation(), leftover.values().iterator().next());
+            sender.sendMessage(MessageUtil.parse("<yellow>" + target.getName() +
+                    "'s inventory was full — the token was dropped at their feet.</yellow>"));
+        }
+        plugin.getLogger().info(sender.getName() + " gave " + target.getName() + " an Aspect Selection Token for " + aspectId);
+        sender.sendMessage(MessageUtil.parse("<green>Gave " + target.getName() + " a Selection Token for " + aspectId + ".</green>"));
+        return true;
+    }
+
+    private boolean handleGiveSelection(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("aspects.admin.selector")) {
+            sender.sendMessage(MessageUtil.parse("<red>You do not have permission to do that.</red>"));
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(MessageUtil.parse("<red>Usage: /aspects admin give-selection <player></red>"));
+            return true;
+        }
+        Player target = Bukkit.getPlayerExact(args[1]);
+        if (target == null) {
+            sender.sendMessage(MessageUtil.parse("<red>Player '" + args[1] + "' is not online.</red>"));
+            return true;
+        }
+        ItemStack selector = plugin.getCustomItemManager().createGenericSelector();
+        Map<Integer, ItemStack> leftover = target.getInventory().addItem(selector);
+        if (!leftover.isEmpty()) {
+            target.getWorld().dropItemNaturally(target.getLocation(), leftover.values().iterator().next());
+            sender.sendMessage(MessageUtil.parse("<yellow>" + target.getName() +
+                    "'s inventory was full — the Selector was dropped at their feet.</yellow>"));
+        }
+        plugin.getLogger().info(sender.getName() + " gave " + target.getName() + " an Aspect Selector");
+        sender.sendMessage(MessageUtil.parse("<green>Gave " + target.getName() + " an Aspect Selector.</green>"));
+        return true;
     }
 
     private boolean handleClearCooldown(CommandSender sender, String[] args) {

@@ -35,6 +35,8 @@ public final class AspectsTabCompleter implements TabCompleter {
             options.add("reroll");
             options.add("reset");
             options.add("give-reroller");
+            options.add("give");
+            options.add("give-selection");
             options.add("clear-cooldown");
             options.add("reload");
             options.add("list");
@@ -42,11 +44,13 @@ public final class AspectsTabCompleter implements TabCompleter {
         } else if (args.length == 3 && args[0].equalsIgnoreCase("admin")
                 && (args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("reroll")
                         || args[1].equalsIgnoreCase("reset") || args[1].equalsIgnoreCase("give-reroller")
+                        || args[1].equalsIgnoreCase("give") || args[1].equalsIgnoreCase("give-selection")
                         || args[1].equalsIgnoreCase("clear-cooldown") || args[1].equalsIgnoreCase("debug"))) {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 options.add(player.getName());
             }
-        } else if (args.length == 4 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("set")) {
+        } else if (args.length == 4 && args[0].equalsIgnoreCase("admin")
+                && (args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("give"))) {
             options.addAll(plugin.getConfigManager().aspectDefinitions().keySet());
         }
 
