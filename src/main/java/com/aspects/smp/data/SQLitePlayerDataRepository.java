@@ -80,6 +80,19 @@ public final class SQLitePlayerDataRepository implements PlayerDataRepository {
     }
 
     @Override
+    public CompletableFuture<Void> deletePlayer(UUID playerId) {
+        return CompletableFuture.runAsync(() -> {
+            String sql = "DELETE FROM players WHERE uuid = ?";
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, playerId.toString());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                logger.severe("Failed to delete player data for " + playerId + ": " + e.getMessage());
+            }
+        }, executor);
+    }
+
+    @Override
     public CompletableFuture<Map<String, Long>> loadCooldowns(UUID playerId) {
         return CompletableFuture.supplyAsync(() -> {
             Map<String, Long> result = new HashMap<>();

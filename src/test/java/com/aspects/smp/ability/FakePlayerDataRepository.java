@@ -26,6 +26,12 @@ public final class FakePlayerDataRepository implements PlayerDataRepository {
     }
 
     @Override
+    public CompletableFuture<Void> deletePlayer(UUID playerId) {
+        players.remove(playerId);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
     public CompletableFuture<Map<String, Long>> loadCooldowns(UUID playerId) {
         return CompletableFuture.completedFuture(new HashMap<>(cooldowns.getOrDefault(playerId, Map.of())));
     }

@@ -10,6 +10,8 @@ public interface PlayerDataRepository {
 
     CompletableFuture<Void> savePlayer(PlayerAspectData data);
 
+    CompletableFuture<Void> deletePlayer(UUID playerId);
+
     CompletableFuture<Map<String, Long>> loadCooldowns(UUID playerId);
 
     CompletableFuture<Void> saveCooldown(UUID playerId, String abilityId, long expiresAtMillis);

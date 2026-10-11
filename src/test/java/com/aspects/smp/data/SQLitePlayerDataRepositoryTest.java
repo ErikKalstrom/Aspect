@@ -92,4 +92,17 @@ class SQLitePlayerDataRepositoryTest {
         assertEquals(999L, cooldowns.get("fire"));
         repo.close();
     }
+
+    @Test
+    void deletePlayer_removesStoredData() throws Exception {
+        SQLitePlayerDataRepository repo = newRepository();
+        UUID playerId = UUID.randomUUID();
+        repo.savePlayer(new PlayerAspectData(playerId, "fire", 1L)).get();
+
+        repo.deletePlayer(playerId).get();
+        Optional<PlayerAspectData> loaded = repo.loadPlayer(playerId).get();
+
+        assertTrue(loaded.isEmpty());
+        repo.close();
+    }
 }
