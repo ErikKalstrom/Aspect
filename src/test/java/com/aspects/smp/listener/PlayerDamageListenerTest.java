@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -65,5 +66,41 @@ class PlayerDamageListenerTest {
         Aspect wind = aspect("wind", Map.of());
 
         assertFalse(PlayerDamageListener.cancelsFreezeDamage(wind));
+    }
+
+    @Test
+    void fallDamageMultiplier_returnsHalf_forVoidWithNoExplicitFlag() {
+        Aspect voidAspect = aspect("void", Map.of());
+
+        assertEquals(0.5, PlayerDamageListener.fallDamageMultiplier(voidAspect), 1e-9);
+    }
+
+    @Test
+    void fallDamageMultiplier_returnsOne_forVoidWithFlagDisabled() {
+        Aspect voidAspect = aspect("void", Map.of("passive.fall-damage-reduction", false));
+
+        assertEquals(1.0, PlayerDamageListener.fallDamageMultiplier(voidAspect), 1e-9);
+    }
+
+    @Test
+    void fallDamageMultiplier_respectsCustomReductionPercent() {
+        Aspect voidAspect = aspect("void",
+                Map.of("passive.fall-damage-reduction", true, "passive.reduction-percent", 30));
+
+        assertEquals(0.7, PlayerDamageListener.fallDamageMultiplier(voidAspect), 1e-9);
+    }
+
+    @Test
+    void fallDamageMultiplier_returnsOne_forFireEvenWithEmptySettings() {
+        Aspect fire = aspect("fire", Map.of());
+
+        assertEquals(1.0, PlayerDamageListener.fallDamageMultiplier(fire), 1e-9);
+    }
+
+    @Test
+    void fallDamageMultiplier_returnsOne_forFrostEvenIfUnrelatedFlagEnabled() {
+        Aspect frost = aspect("frost", Map.of("passive.freeze-immunity", true));
+
+        assertEquals(1.0, PlayerDamageListener.fallDamageMultiplier(frost), 1e-9);
     }
 }
