@@ -214,18 +214,22 @@ right-click for both item types:
   below) showing "Become `<Aspect>`?" instead of "Reroll?".
 - A generic selector: checks `aspects.admin.selector` on the holder, then opens `AspectSelectorGUI`.
 
-### New shared infrastructure: generalizing the confirmation GUI
+### New shared infrastructure: a second, self-contained confirmation GUI (revised)
 
-`RerollConfirmationGUI` (Phase 3 Batch 3a) is specific to "reroll via consuming a held Reroller." Rather than
-duplicate its entire click-handling/atomicity/duplicate-click-guard logic for "assign a specific Aspect via
-consuming a held token," extract a shared `gui/AbstractConsumeConfirmationGUI` base class (or a small shared
-helper) that owns: the 9-slot layout, the filler/confirm/cancel item construction, the duplicate-click guard,
-and the "re-validate the held item at confirm-time, consume only on success" atomicity pattern — parameterized
-by (a) what the "action" is (a `Supplier<Optional<Aspect>>` wrapping either `rerollViaItem` or a new
-`AspectManager.assignViaToken(Player, String aspectId)`), (b) the held-item re-validation predicate, and (c)
-the item/lore text. `RerollConfirmationGUI` itself is refactored to use this shared base, confirmed
-behavior-preserving the same way Phase 3 Batch 3a's `performReroll` extraction was confirmed
-behavior-preserving (controller diff-reviews the refactor line-by-line against the pre-refactor behavior).
+**Revised decision, made without a separate approval round:** rather than generalize `RerollConfirmationGUI`
+(Phase 3 Batch 3a, already shipped and live-verified) into a shared abstract base class, Batch 4b adds a new,
+self-contained `gui/TokenConfirmationGUI` that mirrors `RerollConfirmationGUI`'s structure (9-slot layout,
+filler/confirm/cancel items, the duplicate-click guard, the "re-validate the held item at confirm-time,
+consume only on success" atomicity pattern) without sharing code with it. This matches this project's actual
+established convention more closely than the original plan above: every GUI class built so far
+(`RerollConfirmationGUI`, `MainAspectGUI`, `AspectBrowserGUI`, `AspectDetailsGUI`) already duplicates its own
+small `namedItem`/filler-building helpers rather than drawing from a shared `gui` utility class, despite four
+GUI classes existing before this one — no such utility was ever introduced, because each GUI's needs differ
+just enough (different slot counts, different item semantics) that a shared abstraction would need several
+parameters and branches to serve all of them, trading a little duplication for a lot of indirection. Refactoring
+`RerollConfirmationGUI` — already-shipped, already-live-verified code — to fit a new shared base carries real
+risk for a marginal DRY benefit on a small amount of code; duplicating the pattern once more is the safer,
+more-consistent-with-precedent choice. `AspectManager.assignViaToken` is still added as described below.
 
 `AspectManager.assignViaToken(Player, String aspectId)` is a new, fourth thin wrapper (alongside
 `adminSet`, `adminReroll`/`rerollViaItem`, and Batch 4a's `resetAspect`) around the existing `adminSet`
