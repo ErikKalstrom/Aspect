@@ -175,6 +175,10 @@ public final class AspectsPlugin extends JavaPlugin {
         return aspectManager;
     }
 
+    public AspectRegistry getAspectRegistry() {
+        return aspectRegistry;
+    }
+
     public TemporaryEffectManager getTemporaryEffectManager() {
         return temporaryEffectManager;
     }

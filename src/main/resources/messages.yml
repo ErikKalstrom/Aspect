@@ -30,3 +30,5 @@ gui:
     passive-label: "<gray>Passive:</gray>"
     active-label: "<gray>Active:</gray>"
     cooldown-label: "<gray>Cooldown:</gray>"
+  browser:
+    back-name: "<yellow>« Back</yellow>"
