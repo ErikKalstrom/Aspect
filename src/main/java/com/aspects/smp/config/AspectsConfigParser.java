@@ -18,7 +18,7 @@ public final class AspectsConfigParser {
         String sqliteFile = yml.getString("storage.sqlite-file", "playerdata.db");
         boolean firstJoinEnabled = yml.getBoolean("first-join.enabled", true);
         String firstJoinSound = yml.getString("first-join.sound", "entity.player.levelup");
-        String firstJoinParticle = yml.getString("first-join.particle", "TOTEM");
+        String firstJoinParticle = yml.getString("first-join.particle", "TOTEM_OF_UNDYING");
         int firstJoinParticleCount = yml.getInt("first-join.particle-count", 20);
         List<String> blockedWorlds = yml.getStringList("world-restrictions.blocked-worlds");
         boolean excludeCurrentOnReroll = yml.getBoolean("reroll.exclude-current-aspect", true);

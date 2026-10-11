@@ -8,7 +8,7 @@ storage:
 first-join:
   enabled: true
   sound: "entity.player.levelup"
-  particle: "TOTEM"
+  particle: "TOTEM_OF_UNDYING"
   particle-count: 20
 
 world-restrictions:
