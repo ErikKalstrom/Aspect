@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
@@ -95,6 +96,12 @@ public final class AdminPlayerMenuGUI implements AspectsGuiHolder {
     @Override
     public void onClick(InventoryClickEvent event) {
         if (!inventory.equals(event.getClickedInventory())) {
+            return;
+        }
+        if (event.getClick() == ClickType.DOUBLE_CLICK) {
+            // Give Reroller and Clear Cooldowns apply immediately without closing the menu, unlike the
+            // other actions here; a double-click fires a second InventoryClickEvent on the same slot and
+            // would otherwise run either action twice (e.g. granting 2 Rerollers from one double-click).
             return;
         }
         switch (event.getSlot()) {
