@@ -36,6 +36,7 @@ import com.aspects.smp.config.ConfigValidationException;
 import com.aspects.smp.item.CustomItemManager;
 import com.aspects.smp.data.PlayerDataRepository;
 import com.aspects.smp.data.SQLitePlayerDataRepository;
+import com.aspects.smp.item.AspectSelectorInteractListener;
 import com.aspects.smp.item.RerollerInteractListener;
 import com.aspects.smp.item.RerollerProtectionListener;
 import com.aspects.smp.listener.InventoryListener;
@@ -122,6 +123,7 @@ public final class AspectsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new InventoryListener(), this);
         getServer().getPluginManager().registerEvents(new RerollerInteractListener(this), this);
         getServer().getPluginManager().registerEvents(new RerollerProtectionListener(this), this);
+        getServer().getPluginManager().registerEvents(new AspectSelectorInteractListener(this), this);
 
         AdminCommand adminCommand = new AdminCommand(this);
         AspectsCommand aspectsCommand = new AspectsCommand(this, adminCommand);
