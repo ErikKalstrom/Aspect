@@ -25,6 +25,11 @@ gui:
     current-aspect-lore: "<gray>This Aspect will be replaced.</gray>"
     confirm-name: "<green>Confirm Reroll</green>"
     cancel-name: "<red>Cancel</red>"
+  token-confirm:
+    title: "<dark_purple>Become this Aspect?</dark_purple>"
+    target-aspect-lore: "<gray>This will replace your current Aspect.</gray>"
+    confirm-name: "<green>Confirm</green>"
+    cancel-name: "<red>Cancel</red>"
   details:
     back-name: "<yellow>« Back</yellow>"
     passive-label: "<gray>Passive:</gray>"
