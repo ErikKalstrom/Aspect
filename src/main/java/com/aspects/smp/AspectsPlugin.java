@@ -33,6 +33,7 @@ import com.aspects.smp.command.AspectsCommand;
 import com.aspects.smp.command.AspectsTabCompleter;
 import com.aspects.smp.config.ConfigManager;
 import com.aspects.smp.config.ConfigValidationException;
+import com.aspects.smp.item.CustomItemManager;
 import com.aspects.smp.data.PlayerDataRepository;
 import com.aspects.smp.data.SQLitePlayerDataRepository;
 import com.aspects.smp.listener.PlayerDamageListener;
@@ -75,6 +76,7 @@ public final class AspectsPlugin extends JavaPlugin {
     private AspectManager aspectManager;
     private AbilityCooldownManager cooldownManager;
     private TemporaryEffectManager temporaryEffectManager;
+    private CustomItemManager customItemManager;
     private AbilityManager abilityManager;
 
     @Override
@@ -96,6 +98,7 @@ public final class AspectsPlugin extends JavaPlugin {
 
         cooldownManager = new AbilityCooldownManager(dataRepository);
         temporaryEffectManager = new TemporaryEffectManager();
+        customItemManager = new CustomItemManager(this);
         aspectManager = new AspectManager(aspectRegistry, new AspectAssignmentService(), dataRepository,
                 cooldownManager, temporaryEffectManager, getLogger(), configManager.general().excludeCurrentOnReroll(),
                 runnable -> getServer().getScheduler().runTask(this, runnable));
@@ -163,5 +166,9 @@ public final class AspectsPlugin extends JavaPlugin {
 
     public TemporaryEffectManager getTemporaryEffectManager() {
         return temporaryEffectManager;
+    }
+
+    public CustomItemManager getCustomItemManager() {
+        return customItemManager;
     }
 }
