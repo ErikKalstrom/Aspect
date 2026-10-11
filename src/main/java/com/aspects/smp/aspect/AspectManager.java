@@ -153,6 +153,10 @@ public final class AspectManager {
         return Optional.empty();
     }
 
+    public Optional<Aspect> assignViaToken(Player player, String aspectId) {
+        return adminSet(player, aspectId);
+    }
+
     private Optional<Aspect> performReroll(Player player, boolean excludeCurrent) {
         Aspect previous = assigned.get(player.getUniqueId());
         String excludeId = excludeCurrent && previous != null ? previous.id() : null;
