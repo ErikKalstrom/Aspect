@@ -18,12 +18,12 @@ working autonomously:** this phase is split into two batches, same as Phase 2's 
 
 - **Batch 3a — Reroller item, crafting recipe, reroll confirmation flow.** This is the complete, atomic
   "craft it, use it, get a new Aspect" mechanic: a new `item/` package, a new `recipe/` package, a new
-  `gui/` package containing only `RerollConfirmationGUI` and the shared `GUIListener`, a new `recipes.yml`
+  `gui/` package containing only `RerollConfirmationGUI` and the shared `InventoryListener`, a new `recipes.yml`
   config file, and the player-initiated reroll path on `AspectManager`. This batch is independently
   shippable and testable — a player can craft a Reroller and use it — without any of the informational GUIs
   existing yet.
 - **Batch 3b — Main Aspects GUI, Aspect Browser GUI, Aspect Details GUI.** Purely informational/navigational
-  UI built on top of the `GUIListener` infrastructure from 3a. `/aspects` (currently a text command) becomes
+  UI built on top of the `InventoryListener` infrastructure from 3a. `/aspects` (currently a text command) becomes
   a GUI-opener; the existing text-info behavior moves to a new `/aspects info` subcommand to match the
   original spec's command list exactly.
 
@@ -104,11 +104,13 @@ amethyst shard).
   `PrepareItemCraftEvent` interference; the result `ItemStack` is always the single correctly-tagged stack
   from `createReroller()`, so there is no way to "shift-click exploit" a different result.
 
-### Reroll confirmation flow (`gui/RerollConfirmationGUI`, `gui/GUIListener`)
+### Reroll confirmation flow (`gui/RerollConfirmationGUI`, `listener/InventoryListener`)
 
-- **Trigger:** `PlayerInteractEvent` (right-click, main hand, matching every other "holding an item and
-  right-clicking" interaction already in this plugin) where `CustomItemManager.isReroller(item)` is true.
-  Cancel the event (no placing/using the amethyst shard as a block interaction) and open
+- **Trigger:** a new `item/RerollerInteractListener` (one listener per distinct concern, matching this
+  project's established convention of `ActivationListener`, `PlayerDamageListener`, etc. each owning exactly
+  one piece of behavior) handles `PlayerInteractEvent` (right-click, main hand, matching every other "holding
+  an item and right-clicking" interaction already in this plugin) where `CustomItemManager.isReroller(item)`
+  is true. Cancel the event (no placing/using the amethyst shard as a block interaction) and open
   `RerollConfirmationGUI` for that player.
 - **GUI contents:** a small (size-9, one row) inventory. Slot 4 (center): an item showing the player's
   *current* Aspect (its icon material — reuse the per-Aspect icon concept the Aspect Browser also needs, see
@@ -117,13 +119,13 @@ amethyst shard).
   cancel button (`RED_WOOL`, name `"<red>Cancel</red>"`). Remaining slots: a neutral filler pane
   (`GRAY_STAINED_GLASS_PANE`, empty name) so the whole row looks intentional, matching the spec's "polished"
   requirement.
-- **`GUIListener`** is the single shared `@EventHandler` for `InventoryClickEvent` and `InventoryCloseEvent`
+- **`InventoryListener`** is the single shared `@EventHandler` for `InventoryClickEvent` and `InventoryCloseEvent`
   across *every* GUI this plugin will ever have (3a's confirmation GUI now; 3b's three GUIs later; Phase 4's
   admin GUI later still) — not one listener per GUI type. It identifies which GUI is open via a small
   `Map<InventoryHolder-marker-interface, ...>` dispatch: each GUI class implements a shared
   `AspectsGuiHolder` interface (just a marker, `InventoryHolder` with an added `onClick(InventoryClickEvent)`
   / `onClose(InventoryCloseEvent)` pair of methods) and is itself an `InventoryHolder` set on the `Inventory`
-  it creates. `GUIListener.onClick` does `if (event.getInventory().getHolder() instanceof AspectsGuiHolder holder) { event.setCancelled(true); holder.onClick(event); }` — cancelling *every* click unconditionally before
+  it creates. `InventoryListener.onClick` does `if (event.getInventory().getHolder() instanceof AspectsGuiHolder holder) { event.setCancelled(true); holder.onClick(event); }` — cancelling *every* click unconditionally before
   delegating is what satisfies the spec's "protect GUI inventories against item stealing and shift-click
   exploits" for every current and future GUI, in one place, by construction (a GUI class cannot forget to
   cancel the event, because it never gets the chance not to).
@@ -217,7 +219,7 @@ Size-27 (3 rows) inventory. Contents, per the spec's bullet list:
   changes the recipe, rather than being a hardcoded string).
 - Filler panes for visual polish, same `GRAY_STAINED_GLASS_PANE` convention as the confirmation GUI.
 - All clicks are no-ops except the two buttons above (everything else in the GUI is inert/decorative) — the
-  shared `GUIListener`'s unconditional cancel already prevents item extraction; `MainAspectGUI.onClick` only
+  shared `InventoryListener`'s unconditional cancel already prevents item extraction; `MainAspectGUI.onClick` only
   needs to branch on which slot was clicked.
 
 ### `AspectBrowserGUI`
@@ -244,11 +246,12 @@ no effect except the Back button — this GUI makes no state changes at all, by 
   explicitly Phase 4 scope — `/aspects admin give-selection` — not built here).
 - **`item/RerollerItem`** — a thin wrapper/constant-holder around the Reroller's specific appearance data
   (display name, lore, material), consumed by `CustomItemManager`.
+- **`item/RerollerInteractListener`** — the right-click-to-open-confirmation trigger.
 - **`recipe/RerollerRecipeManager`** — registers/unregisters the shaped recipe from `recipes.yml`.
 - **`config/RecipesConfig`** (record) + parser additions — follows the exact staged-validate-swap pattern
   `ConfigManager` already uses for `config.yml`/`aspects.yml`.
 - **`gui/AspectsGuiHolder`** (new interface) — marker + click/close callback contract every GUI implements.
-- **`gui/GUIListener`** — the one `@EventHandler` pair (`InventoryClickEvent`, `InventoryCloseEvent`) for
+- **`listener/InventoryListener`** — the one `@EventHandler` pair (`InventoryClickEvent`, `InventoryCloseEvent`) for
   every GUI, present and future.
 - **`gui/RerollConfirmationGUI`** (3a), **`gui/MainAspectGUI`**, **`gui/AspectBrowserGUI`**,
   **`gui/AspectDetailsGUI`** (3b).
