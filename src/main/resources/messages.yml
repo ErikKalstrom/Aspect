@@ -54,3 +54,8 @@ gui:
     back-name: "<yellow>« Back</yellow>"
   admin-player:
     player-offline: "<red>That player is no longer online.</red>"
+  admin-reroll-confirm:
+    title: "<dark_purple>Force Reroll?</dark_purple>"
+    current-aspect-lore: "<gray>This Aspect will be replaced.</gray>"
+    confirm-name: "<green>Confirm Reroll</green>"
+    cancel-name: "<red>Cancel</red>"
