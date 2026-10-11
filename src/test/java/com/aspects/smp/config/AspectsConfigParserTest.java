@@ -101,4 +101,144 @@ class AspectsConfigParserTest {
         assertEquals(1, errors.size());
         assertTrue(errors.get(0).contains("aspects"));
     }
+
+    @Test
+    void parseRecipes_acceptsValidConfig() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "reroller:\n" +
+                "  enabled: true\n" +
+                "  pattern:\n" +
+                "    - \"ADA\"\n" +
+                "    - \"DND\"\n" +
+                "    - \"ADA\"\n" +
+                "  ingredients:\n" +
+                "    A: AMETHYST_SHARD\n" +
+                "    D: DIAMOND\n" +
+                "    N: NETHER_STAR\n" +
+                "  result-amount: 1\n"));
+        List<String> errors = new ArrayList<>();
+
+        RecipesConfig config = AspectsConfigParser.parseRecipes(yml, errors);
+
+        assertTrue(errors.isEmpty());
+        assertTrue(config.rerollerEnabled());
+        assertEquals(List.of("ADA", "DND", "ADA"), config.rerollerPattern());
+        assertEquals(org.bukkit.Material.AMETHYST_SHARD, config.rerollerIngredients().get('A'));
+        assertEquals(org.bukkit.Material.DIAMOND, config.rerollerIngredients().get('D'));
+        assertEquals(org.bukkit.Material.NETHER_STAR, config.rerollerIngredients().get('N'));
+        assertEquals(1, config.rerollerResultAmount());
+    }
+
+    @Test
+    void parseRecipes_rejectsPatternWithWrongRowCount() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "reroller:\n" +
+                "  pattern:\n" +
+                "    - \"ADA\"\n" +
+                "    - \"DND\"\n" +
+                "  ingredients:\n" +
+                "    A: AMETHYST_SHARD\n" +
+                "    D: DIAMOND\n"));
+        List<String> errors = new ArrayList<>();
+
+        AspectsConfigParser.parseRecipes(yml, errors);
+
+        assertTrue(errors.stream().anyMatch(e -> e.contains("exactly 3 rows")));
+    }
+
+    @Test
+    void parseRecipes_rejectsRowWithWrongLength() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "reroller:\n" +
+                "  pattern:\n" +
+                "    - \"AD\"\n" +
+                "    - \"DND\"\n" +
+                "    - \"ADA\"\n" +
+                "  ingredients:\n" +
+                "    A: AMETHYST_SHARD\n" +
+                "    D: DIAMOND\n" +
+                "    N: NETHER_STAR\n"));
+        List<String> errors = new ArrayList<>();
+
+        AspectsConfigParser.parseRecipes(yml, errors);
+
+        assertTrue(errors.stream().anyMatch(e -> e.contains("exactly 3 characters")));
+    }
+
+    @Test
+    void parseRecipes_rejectsUnknownMaterial() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "reroller:\n" +
+                "  pattern:\n" +
+                "    - \"ADA\"\n" +
+                "    - \"DND\"\n" +
+                "    - \"ADA\"\n" +
+                "  ingredients:\n" +
+                "    A: NOT_A_REAL_MATERIAL\n" +
+                "    D: DIAMOND\n" +
+                "    N: NETHER_STAR\n"));
+        List<String> errors = new ArrayList<>();
+
+        AspectsConfigParser.parseRecipes(yml, errors);
+
+        assertTrue(errors.stream().anyMatch(e -> e.contains("unknown material")));
+    }
+
+    @Test
+    void parseRecipes_rejectsPatternCharacterWithNoIngredient() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "reroller:\n" +
+                "  pattern:\n" +
+                "    - \"ADA\"\n" +
+                "    - \"DXD\"\n" +
+                "    - \"ADA\"\n" +
+                "  ingredients:\n" +
+                "    A: AMETHYST_SHARD\n" +
+                "    D: DIAMOND\n"));
+        List<String> errors = new ArrayList<>();
+
+        AspectsConfigParser.parseRecipes(yml, errors);
+
+        assertTrue(errors.stream().anyMatch(e -> e.contains("no matching ingredient")));
+    }
+
+    @Test
+    void parseRecipes_allowsSpaceAsEmptySlot() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "reroller:\n" +
+                "  pattern:\n" +
+                "    - \"A A\"\n" +
+                "    - \"DND\"\n" +
+                "    - \"A A\"\n" +
+                "  ingredients:\n" +
+                "    A: AMETHYST_SHARD\n" +
+                "    D: DIAMOND\n" +
+                "    N: NETHER_STAR\n"));
+        List<String> errors = new ArrayList<>();
+
+        AspectsConfigParser.parseRecipes(yml, errors);
+
+        assertTrue(errors.isEmpty());
+    }
+
+    @Test
+    void parseRecipes_rejectsResultAmountBelowOne() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "reroller:\n" +
+                "  pattern:\n" +
+                "    - \"ADA\"\n" +
+                "    - \"DND\"\n" +
+                "    - \"ADA\"\n" +
+                "  ingredients:\n" +
+                "    A: AMETHYST_SHARD\n" +
+                "    D: DIAMOND\n" +
+                "    N: NETHER_STAR\n" +
+                "  result-amount: 0\n"));
+        List<String> errors = new ArrayList<>();
+
+        RecipesConfig config = AspectsConfigParser.parseRecipes(yml, errors);
+
+        assertTrue(errors.stream().anyMatch(e -> e.contains("result-amount")));
+        assertEquals(1, config.rerollerResultAmount());
+    }
 }

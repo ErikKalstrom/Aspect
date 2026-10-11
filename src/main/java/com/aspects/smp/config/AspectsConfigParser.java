@@ -2,6 +2,7 @@ package com.aspects.smp.config;
 
 import com.aspects.smp.aspect.AspectDefinition;
 import com.aspects.smp.aspect.AspectRarity;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -70,5 +71,58 @@ public final class AspectsConfigParser {
             result.put(id, new AspectDefinition(id, displayName, description, rarity, weight, enabled, settings));
         }
         return result;
+    }
+
+    public static RecipesConfig parseRecipes(FileConfiguration yml, List<String> errors) {
+        boolean enabled = yml.getBoolean("reroller.enabled", true);
+        List<String> pattern = yml.getStringList("reroller.pattern");
+        int resultAmount = yml.getInt("reroller.result-amount", 1);
+
+        if (pattern.size() != 3) {
+            errors.add("recipes.yml reroller.pattern must have exactly 3 rows");
+            pattern = List.of("ADA", "DND", "ADA");
+        } else {
+            for (String row : pattern) {
+                if (row.length() != 3) {
+                    errors.add("recipes.yml reroller.pattern rows must each be exactly 3 characters");
+                    break;
+                }
+            }
+        }
+
+        Map<Character, Material> ingredients = new LinkedHashMap<>();
+        ConfigurationSection ingredientsSection = yml.getConfigurationSection("reroller.ingredients");
+        if (ingredientsSection == null) {
+            errors.add("recipes.yml is missing the 'reroller.ingredients' section");
+        } else {
+            for (String key : ingredientsSection.getKeys(false)) {
+                if (key.length() != 1) {
+                    errors.add("recipes.yml reroller.ingredients key '" + key + "' must be a single character");
+                    continue;
+                }
+                String materialName = ingredientsSection.getString(key);
+                Material material = materialName == null ? null : Material.matchMaterial(materialName);
+                if (material == null) {
+                    errors.add("recipes.yml reroller.ingredients." + key + " has unknown material '" + materialName + "'");
+                    continue;
+                }
+                ingredients.put(key.charAt(0), material);
+            }
+
+            for (String row : pattern) {
+                for (char c : row.toCharArray()) {
+                    if (c != ' ' && !ingredients.containsKey(c)) {
+                        errors.add("recipes.yml reroller.pattern uses character '" + c + "' with no matching ingredient");
+                    }
+                }
+            }
+        }
+
+        if (resultAmount < 1) {
+            errors.add("recipes.yml reroller.result-amount must be at least 1");
+            resultAmount = 1;
+        }
+
+        return new RecipesConfig(enabled, pattern, ingredients, resultAmount);
     }
 }

@@ -17,6 +17,7 @@ public final class ConfigManager {
     private GeneralConfig generalConfig;
     private Map<String, AspectDefinition> aspectDefinitions = Map.of();
     private Map<String, String> messages = Map.of();
+    private RecipesConfig recipesConfig;
 
     public ConfigManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -26,14 +27,17 @@ public final class ConfigManager {
         plugin.saveDefaultConfig();
         saveResourceIfMissing("aspects.yml");
         saveResourceIfMissing("messages.yml");
+        saveResourceIfMissing("recipes.yml");
 
         FileConfiguration configYml = loadYaml("config.yml");
         FileConfiguration aspectsYml = loadYaml("aspects.yml");
         FileConfiguration messagesYml = loadYaml("messages.yml");
+        FileConfiguration recipesYml = loadYaml("recipes.yml");
 
         List<String> errors = new ArrayList<>();
         GeneralConfig stagedGeneral = AspectsConfigParser.parseGeneral(configYml, errors);
         Map<String, AspectDefinition> stagedAspects = AspectsConfigParser.parseAspects(aspectsYml, errors);
+        RecipesConfig stagedRecipes = AspectsConfigParser.parseRecipes(recipesYml, errors);
 
         Map<String, String> stagedMessages = new HashMap<>();
         for (Map.Entry<String, Object> entry : messagesYml.getValues(true).entrySet()) {
@@ -49,6 +53,7 @@ public final class ConfigManager {
         this.generalConfig = stagedGeneral;
         this.aspectDefinitions = stagedAspects;
         this.messages = stagedMessages;
+        this.recipesConfig = stagedRecipes;
     }
 
     private void saveResourceIfMissing(String name) {
@@ -73,5 +78,9 @@ public final class ConfigManager {
 
     public String message(String key) {
         return messages.getOrDefault(key, key);
+    }
+
+    public RecipesConfig recipes() {
+        return recipesConfig;
     }
 }

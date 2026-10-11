@@ -1,0 +1,12 @@
+# Crafting recipe for the Aspect Reroller item.
+reroller:
+  enabled: true
+  pattern:
+    - "ADA"
+    - "DND"
+    - "ADA"
+  ingredients:
+    A: AMETHYST_SHARD
+    D: DIAMOND
+    N: NETHER_STAR
+  result-amount: 1
