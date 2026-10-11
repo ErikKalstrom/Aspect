@@ -155,4 +155,12 @@ class PlayerDamageListenerTest {
 
         assertEquals(1.0, PlayerDamageListener.meleeDamageMultiplier(fire, true), 1e-9);
     }
+
+    @Test
+    void meleeDamageMultiplier_clampsNegativePassivePercent_toNoBonus() {
+        Aspect blood = aspect("blood",
+                Map.of("passive.melee-damage-bonus-percent", -15, "active.bonus-percent", -25));
+
+        assertEquals(1.0, PlayerDamageListener.meleeDamageMultiplier(blood, true), 1e-9);
+    }
 }
