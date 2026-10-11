@@ -16,7 +16,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public final class MainAspectGUI implements AspectsGuiHolder {
     private static final int SIZE = 27;
