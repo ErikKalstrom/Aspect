@@ -43,9 +43,28 @@ design needs were confirmed via `javap` against the real jars (not assumed from 
 `WorldGuardPlugin.inst().wrapPlayer(Player)` returns a `LocalPlayer`; `BukkitAdapter.adapt(org.bukkit.Location)`
 converts a Bukkit `Location` to WorldEdit's `Location` type; `StateFlag(String name, boolean defaultValue)` is
 a public constructor; `FlagRegistry.register(Flag<?>)` throws the unchecked `FlagConflictException` if a flag
-with that name is already registered (e.g. by another plugin, or by our own plugin reloading); custom-flag
-registration during a soft-depending plugin's `onEnable()` is WorldGuard's own officially documented pattern
-for third-party flags, not a guess.
+with that name is already registered (e.g. by another plugin, or by our own plugin reloading).
+
+**Correction from the final whole-branch review:** an earlier version of this doc claimed custom-flag
+registration belongs in a soft-depending plugin's `onEnable()`. That is wrong and was caught by the review,
+not assumed correct here. WorldGuard locks its flag registry (`SimpleFlagRegistry.register` starts throwing
+`IllegalStateException`) once WorldGuard's own `onEnable()` runs, and `softdepend` guarantees WorldGuard's
+`onEnable()` runs before ours — so registering in our `onEnable()` always hits the locked registry. The
+registry is still open during `onLoad()`, which Bukkit calls for every plugin before any plugin's `onEnable()`
+runs; `softdepend` ordering still guarantees WorldGuard's `Plugin` instance already exists (loaded, though not
+yet enabled) by the time our `onLoad()` runs, which is all a presence check needs — `isEnabled()` must NOT be
+part of that check here, since nothing is enabled yet at `onLoad()` time. `WorldGuardIntegration` is
+constructed in `AspectsPlugin.onLoad()`, not `onEnable()`, for exactly this reason.
+
+**Second correction from the review:** a presence-check guard inside a single class is not sufficient to keep
+that class loadable when WorldGuard is absent. The JVM verifier resolves exception-handler types and
+checkcast/instanceof targets when a class is linked, regardless of which branches actually execute — a
+`catch (FlagConflictException e)` block or a `registry.register(flag)` call (checking a `StateFlag` is
+assignable to `Flag`) inside `WorldGuardIntegration` itself would force a `NoClassDefFoundError` at
+`new WorldGuardIntegration(...)` even on a server without WorldGuard, even though the constructor's own logic
+never calls those branches. All WorldGuard/WorldEdit API references now live in a separate, package-private
+`WorldGuardHook` class that `WorldGuardIntegration` only instantiates after confirming presence —
+`WorldGuardIntegration` itself contains zero WorldGuard symbols, so it links safely either way.
 
 ## Design
 

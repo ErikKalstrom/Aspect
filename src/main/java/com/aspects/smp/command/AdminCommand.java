@@ -290,8 +290,9 @@ public final class AdminCommand {
         plugin.getRerollerRecipeManager().register(plugin.getConfigManager().recipes());
         sender.sendMessage(MessageUtil.parse("<green>Aspects configuration reloaded.</green>"));
         sender.sendMessage(MessageUtil.parse("<yellow>Note: messages.yml, recipes.yml, and the reveal-animation " +
-                "setting are applied live. Changes to aspects.yml and to the reroll/reset behavior flags or " +
-                "blocked-worlds in config.yml require a server restart to take effect.</yellow>"));
+                "setting are applied live. Changes to aspects.yml and to the reroll/reset behavior flags, " +
+                "blocked-worlds, or respect-worldguard in config.yml require a server restart to take " +
+                "effect.</yellow>"));
         return true;
     }
 

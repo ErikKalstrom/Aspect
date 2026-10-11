@@ -73,6 +73,6 @@ public final class VoidActiveAbility implements Ability {
         if (feet.isSolid() || head.isSolid() || feet == Material.LAVA || head == Material.LAVA || floor == Material.LAVA) {
             return false;
         }
-        return context.plugin().getWorldGuardIntegration().isAbilityAllowed(point, context.player());
+        return context.plugin().getProtectionGate().isLocationAllowed(point, context.player());
     }
 }

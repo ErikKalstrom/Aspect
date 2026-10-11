@@ -1,6 +1,7 @@
 package com.aspects.smp.ability;
 
 import com.aspects.smp.integration.WorldGuardIntegration;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
@@ -23,9 +24,15 @@ public final class ProtectionGate {
         if (blockedWorlds.contains(player.getWorld().getName())) {
             return false;
         }
-        if (respectWorldGuard && !worldGuardIntegration.isAbilityAllowed(player.getLocation(), player)) {
-            return false;
-        }
-        return true;
+        return isLocationAllowed(player.getLocation(), player);
+    }
+
+    /**
+     * Checks only the WorldGuard restriction (not blocked-worlds) for an arbitrary location, honoring the
+     * {@code respect-worldguard} config toggle. Used by abilities that need to check a candidate location
+     * other than the player's current one, such as a teleport destination.
+     */
+    public boolean isLocationAllowed(Location location, Player player) {
+        return !respectWorldGuard || worldGuardIntegration.isAbilityAllowed(location, player);
     }
 }

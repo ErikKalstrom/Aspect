@@ -86,6 +86,17 @@ public final class AspectsPlugin extends JavaPlugin {
     private RerollerRecipeManager rerollerRecipeManager;
     private AbilityManager abilityManager;
     private WorldGuardIntegration worldGuardIntegration;
+    private ProtectionGate protectionGate;
+
+    @Override
+    public void onLoad() {
+        // Registering the WorldGuard custom flag must happen here, not in onEnable(): WorldGuard locks its
+        // flag registry once its own onEnable() runs, and softdepend guarantees WorldGuard's onEnable() runs
+        // before ours. onLoad() runs for every plugin before any plugin's onEnable(), so the registry is
+        // still open here, and softdepend ordering still guarantees WorldGuard has already been loaded (its
+        // Plugin instance exists) by the time this runs, even though it is not yet enabled.
+        worldGuardIntegration = new WorldGuardIntegration(this);
+    }
 
     @Override
     public void onEnable() {
@@ -113,8 +124,7 @@ public final class AspectsPlugin extends JavaPlugin {
                 configManager.general().resetImmediateReassign(),
                 runnable -> getServer().getScheduler().runTask(this, runnable));
 
-        worldGuardIntegration = new WorldGuardIntegration(this);
-        ProtectionGate protectionGate = new ProtectionGate(configManager.general().blockedWorlds(),
+        protectionGate = new ProtectionGate(configManager.general().blockedWorlds(),
                 worldGuardIntegration, configManager.general().respectWorldGuard());
         abilityManager = new AbilityManager(aspectManager, cooldownManager, protectionGate, this);
 
@@ -204,5 +214,9 @@ public final class AspectsPlugin extends JavaPlugin {
 
     public WorldGuardIntegration getWorldGuardIntegration() {
         return worldGuardIntegration;
+    }
+
+    public ProtectionGate getProtectionGate() {
+        return protectionGate;
     }
 }
