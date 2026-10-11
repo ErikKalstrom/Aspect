@@ -19,7 +19,7 @@ public final class ThunderActiveAbility implements Ability {
         AspectDefinition definition = context.aspect().definition();
 
         double maxDistance = definition.getDouble("active.max-distance", 7.0);
-        double velocityPerBlock = definition.getDouble("active.velocity-per-block", 0.6);
+        double velocityPerBlock = definition.getDouble("active.velocity-per-block", 0.3);
         double verticalBoost = definition.getDouble("active.vertical-boost", 0.15);
         double safetyMargin = definition.getDouble("active.wall-safety-margin", 0.5);
 

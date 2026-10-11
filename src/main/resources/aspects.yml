@@ -60,7 +60,7 @@ aspects:
     active:
       cooldown-seconds: 18
       max-distance: 7.0
-      velocity-per-block: 0.6
+      velocity-per-block: 0.3
       vertical-boost: 0.15
       wall-safety-margin: 0.5
 
