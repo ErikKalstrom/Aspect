@@ -1,10 +1,10 @@
 # Each entry under `aspects` defines one Aspect. `enabled: false` aspects are
 # never assigned to players and are excluded from random selection.
 #
-# fire, tide, frost, wind, earth, and thunder are implemented (Phase 1 and
-# Phase 2 Batches A and B1). void and blood are listed here with their final
-# rarity/description so the file's shape is correct, but their abilities are
-# NOT implemented yet — they ship disabled until Batch B2 adds their code.
+# fire, tide, frost, wind, earth, thunder, and void are implemented (Phase 1,
+# Phase 2 Batches A and B1, and Batch B2a). blood is listed here with its
+# final rarity/description so the file's shape is correct, but its abilities
+# are NOT implemented yet — it ships disabled until Batch B2b adds its code.
 aspects:
   fire:
     enabled: true
@@ -65,11 +65,17 @@ aspects:
       wall-safety-margin: 0.5
 
   void:
-    enabled: false
+    enabled: true
     display-name: "<dark_purple>Void</dark_purple>"
-    description: "Not yet implemented (planned for Phase 2)."
+    description: "Teleportation, deception, and positioning."
     rarity: LEGENDARY
-    weight: 0
+    weight: 5
+    passive:
+      fall-damage-reduction: true
+      reduction-percent: 50
+    active:
+      cooldown-seconds: 22
+      max-distance: 7.0
 
   earth:
     enabled: true
