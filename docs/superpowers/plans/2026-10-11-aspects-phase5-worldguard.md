@@ -13,10 +13,17 @@ isn't present. `ProtectionGate` (the existing single gate every active-ability a
 through) and `VoidActiveAbility` (the only ability that teleports) both consult that one method — no other
 file needs to know WorldGuard exists.
 
-**Tech Stack:** `com.sk89q.worldguard:worldguard-bukkit:7.0.19` and its transitive `worldedit-bukkit:7.4.4`,
+**Tech Stack:** `com.sk89q.worldguard:worldguard-bukkit:7.0.17` and its transitive `worldedit-bukkit:7.3.18`,
 both Maven `provided` scope (compile-time only, never bundled into the shaded jar — confirmed by building with
 the dependency added and observing the jar size is unchanged). Resolved from
-`https://maven.enginehub.org/repo/`, confirmed reachable and resolving cleanly.
+`https://maven.enginehub.org/repo/`, confirmed reachable and resolving cleanly. **Version note:** 7.0.17 is
+pinned deliberately, not just "a recent version" — 7.0.19's jars (and its transitive `worldedit` 7.4.4) are
+compiled to Java 25 bytecode (class file major version 69), which fails to compile against this project's
+Java 21 target (`mvn package` fails with "class file has wrong version 69.0, should be 65.0"). 7.0.17 (and
+its transitive `worldedit` 7.3.18) are compiled to Java 21 bytecode (major version 65), matching this
+project exactly — confirmed by inspecting the class file version bytes of the actual resolved jars, and by a
+real `mvn package` compiling `WorldGuardIntegration.java` successfully against it. Do not bump this version
+without re-checking the resolved jars' class file version against this project's `maven.compiler.target`.
 
 ## Global Constraints
 
@@ -74,7 +81,7 @@ Inside the `<dependencies>` block, add (after the existing `sqlite-jdbc` depende
         <dependency>
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-bukkit</artifactId>
-            <version>7.0.19</version>
+            <version>7.0.17</version>
             <scope>provided</scope>
         </dependency>
 ```
