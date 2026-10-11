@@ -175,6 +175,10 @@ public final class AspectsPlugin extends JavaPlugin {
         return aspectManager;
     }
 
+    public AbilityCooldownManager getCooldownManager() {
+        return cooldownManager;
+    }
+
     public AspectRegistry getAspectRegistry() {
         return aspectRegistry;
     }

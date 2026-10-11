@@ -32,3 +32,9 @@ gui:
     cooldown-label: "<gray>Cooldown:</gray>"
   browser:
     back-name: "<yellow>« Back</yellow>"
+  main:
+    title: "<dark_purple>Your Aspect</dark_purple>"
+    browse-name: "<aqua>Browse Aspects</aqua>"
+    craft-info-name: "<gray>How to craft a Reroller</gray>"
+    cooldown-ready: "<green>Ready</green>"
+    cooldown-remaining: "<red>{seconds}s remaining</red>"
