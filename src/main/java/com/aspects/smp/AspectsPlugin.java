@@ -36,6 +36,7 @@ import com.aspects.smp.config.ConfigValidationException;
 import com.aspects.smp.item.CustomItemManager;
 import com.aspects.smp.data.PlayerDataRepository;
 import com.aspects.smp.data.SQLitePlayerDataRepository;
+import com.aspects.smp.integration.WorldGuardIntegration;
 import com.aspects.smp.item.AspectSelectorInteractListener;
 import com.aspects.smp.item.RerollerInteractListener;
 import com.aspects.smp.item.RerollerProtectionListener;
@@ -84,6 +85,7 @@ public final class AspectsPlugin extends JavaPlugin {
     private CustomItemManager customItemManager;
     private RerollerRecipeManager rerollerRecipeManager;
     private AbilityManager abilityManager;
+    private WorldGuardIntegration worldGuardIntegration;
 
     @Override
     public void onEnable() {
@@ -111,7 +113,9 @@ public final class AspectsPlugin extends JavaPlugin {
                 configManager.general().resetImmediateReassign(),
                 runnable -> getServer().getScheduler().runTask(this, runnable));
 
-        ProtectionGate protectionGate = new ProtectionGate(configManager.general().blockedWorlds());
+        worldGuardIntegration = new WorldGuardIntegration(this);
+        ProtectionGate protectionGate = new ProtectionGate(configManager.general().blockedWorlds(),
+                worldGuardIntegration, configManager.general().respectWorldGuard());
         abilityManager = new AbilityManager(aspectManager, cooldownManager, protectionGate, this);
 
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
@@ -196,5 +200,9 @@ public final class AspectsPlugin extends JavaPlugin {
 
     public RerollerRecipeManager getRerollerRecipeManager() {
         return rerollerRecipeManager;
+    }
+
+    public WorldGuardIntegration getWorldGuardIntegration() {
+        return worldGuardIntegration;
     }
 }
