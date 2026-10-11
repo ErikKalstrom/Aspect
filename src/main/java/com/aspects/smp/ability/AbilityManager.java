@@ -6,6 +6,8 @@ import com.aspects.smp.aspect.AspectManager;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
+import java.util.Map;
+
 public final class AbilityManager {
     private final AspectManager aspectManager;
     private final AbilityCooldownManager cooldownManager;
@@ -22,28 +24,28 @@ public final class AbilityManager {
 
     public ActivationResult tryActivate(Player player) {
         if (player.isDead() || player.getGameMode() == GameMode.SPECTATOR) {
-            return ActivationResult.failed("You cannot use abilities right now.");
+            return ActivationResult.failed("ability.unavailable");
         }
 
         Aspect aspect = aspectManager.getAspect(player.getUniqueId()).orElse(null);
         if (aspect == null) {
-            return ActivationResult.failed("You do not have an Aspect assigned yet.");
+            return ActivationResult.failed("ability.no-aspect");
         }
         if (!aspect.definition().enabled()) {
-            return ActivationResult.failed("Your Aspect is currently disabled on this server.");
+            return ActivationResult.failed("ability.aspect-disabled");
         }
         if (!protectionGate.isAllowed(player)) {
-            return ActivationResult.failed("Abilities cannot be used in this world.");
+            return ActivationResult.failed("ability.world-blocked");
         }
         if (cooldownManager.isOnCooldown(player.getUniqueId(), aspect.id())) {
             long seconds = (cooldownManager.remainingMillis(player.getUniqueId(), aspect.id()) + 999) / 1000;
-            return ActivationResult.failed("Your ability is on cooldown for " + seconds + "s.");
+            return ActivationResult.failed("ability.on-cooldown", Map.of("seconds", String.valueOf(seconds)));
         }
 
         AbilityContext context = new AbilityContext(player, aspect, plugin);
         boolean activated = aspect.active().activate(context);
         if (!activated) {
-            return ActivationResult.failed("Your ability could not be activated right now.");
+            return ActivationResult.failed("ability.activation-failed");
         }
 
         long cooldownSeconds = (long) aspect.definition().getDouble("active.cooldown-seconds", 20.0);
@@ -51,13 +53,17 @@ public final class AbilityManager {
         return ActivationResult.succeeded();
     }
 
-    public record ActivationResult(boolean success, String failureMessage) {
+    public record ActivationResult(boolean success, String messageKey, Map<String, String> placeholders) {
         public static ActivationResult succeeded() {
-            return new ActivationResult(true, null);
+            return new ActivationResult(true, null, Map.of());
         }
 
-        public static ActivationResult failed(String message) {
-            return new ActivationResult(false, message);
+        public static ActivationResult failed(String messageKey) {
+            return new ActivationResult(false, messageKey, Map.of());
+        }
+
+        public static ActivationResult failed(String messageKey, Map<String, String> placeholders) {
+            return new ActivationResult(false, messageKey, placeholders);
         }
     }
 }

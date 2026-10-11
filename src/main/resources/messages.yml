@@ -10,6 +10,8 @@ ability:
   aspect-disabled: "<red>Your Aspect is currently disabled on this server.</red>"
   world-blocked: "<red>Abilities cannot be used in this world.</red>"
   on-cooldown: "<red>Your ability is on cooldown for {seconds}s.</red>"
+  unavailable: "<red>You cannot use abilities right now.</red>"
+  activation-failed: "<red>Your ability could not be activated right now.</red>"
 
 reroll:
   changed: "<gradient:dark_purple:aqua>Your Aspect has changed!</gradient>"

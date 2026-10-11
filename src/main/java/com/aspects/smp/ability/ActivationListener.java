@@ -1,6 +1,7 @@
 package com.aspects.smp.ability;
 
-import net.kyori.adventure.text.Component;
+import com.aspects.smp.AspectsPlugin;
+import com.aspects.smp.util.MessageUtil;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -8,7 +9,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Collections;
 import java.util.Set;
@@ -17,10 +17,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class ActivationListener implements Listener {
     private final AbilityManager abilityManager;
-    private final JavaPlugin plugin;
+    private final AspectsPlugin plugin;
     private final Set<UUID> debounce = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    public ActivationListener(AbilityManager abilityManager, JavaPlugin plugin) {
+    public ActivationListener(AbilityManager abilityManager, AspectsPlugin plugin) {
         this.abilityManager = abilityManager;
         this.plugin = plugin;
     }
@@ -48,7 +48,8 @@ public final class ActivationListener implements Listener {
 
         AbilityManager.ActivationResult result = abilityManager.tryActivate(player);
         if (!result.success()) {
-            player.sendActionBar(Component.text(result.failureMessage()));
+            String template = plugin.getConfigManager().message(result.messageKey());
+            player.sendActionBar(MessageUtil.parse(template, result.placeholders()));
         }
     }
 }
