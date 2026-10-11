@@ -1,0 +1,76 @@
+# Each entry under `aspects` defines one Aspect. `enabled: false` aspects are
+# never assigned to players and are excluded from random selection.
+#
+# fire and tide are the only two Aspects implemented in this phase (Phase 1).
+# The remaining six are listed here with their final rarity/description so the
+# file's shape is correct, but their abilities are NOT implemented yet — they
+# ship disabled until a later phase adds their code.
+aspects:
+  fire:
+    enabled: true
+    display-name: "<red>Fire</red>"
+    description: "Aggressive damage and burning enemies."
+    rarity: RARE
+    weight: 20
+    passive:
+      fire-resistance: true
+    active:
+      cooldown-seconds: 25
+      radius: 4.0
+      damage: 4.0
+      burn-ticks: 60
+      windup-ticks: 10
+
+  tide:
+    enabled: true
+    display-name: "<aqua>Tide</aqua>"
+    description: "Water, regeneration, and endurance."
+    rarity: COMMON
+    weight: 40
+    passive:
+      water-breathing: true
+    active:
+      cooldown-seconds: 35
+      heal-amount: 4.0
+
+  frost:
+    enabled: false
+    display-name: "<aqua>Frost</aqua>"
+    description: "Not yet implemented (planned for Phase 2)."
+    rarity: RARE
+    weight: 0
+
+  thunder:
+    enabled: false
+    display-name: "<yellow>Thunder</yellow>"
+    description: "Not yet implemented (planned for Phase 2)."
+    rarity: EPIC
+    weight: 0
+
+  void:
+    enabled: false
+    display-name: "<dark_purple>Void</dark_purple>"
+    description: "Not yet implemented (planned for Phase 2)."
+    rarity: LEGENDARY
+    weight: 0
+
+  earth:
+    enabled: false
+    display-name: "<dark_green>Earth</dark_green>"
+    description: "Not yet implemented (planned for Phase 2)."
+    rarity: RARE
+    weight: 0
+
+  wind:
+    enabled: false
+    display-name: "<white>Wind</white>"
+    description: "Not yet implemented (planned for Phase 2)."
+    rarity: COMMON
+    weight: 0
+
+  blood:
+    enabled: false
+    display-name: "<dark_red>Blood</dark_red>"
+    description: "Not yet implemented (planned for Phase 2)."
+    rarity: EPIC
+    weight: 0
