@@ -34,11 +34,20 @@ aspects:
       heal-amount: 4.0
 
   frost:
-    enabled: false
+    enabled: true
     display-name: "<aqua>Frost</aqua>"
-    description: "Not yet implemented (planned for Phase 2)."
+    description: "Slowing and controlling opponents."
     rarity: RARE
-    weight: 0
+    weight: 20
+    passive:
+      freeze-immunity: true
+    active:
+      cooldown-seconds: 24
+      radius: 5.0
+      slowness-duration-ticks: 60
+      slowness-amplifier: 1
+      mining-fatigue-enabled: false
+      mining-fatigue-ticks: 40
 
   thunder:
     enabled: false
@@ -62,11 +71,17 @@ aspects:
     weight: 0
 
   wind:
-    enabled: false
+    enabled: true
     display-name: "<white>Wind</white>"
-    description: "Not yet implemented (planned for Phase 2)."
+    description: "Agility, jumping, and aerial movement."
     rarity: COMMON
-    weight: 0
+    weight: 40
+    passive:
+      speed-boost: true
+    active:
+      cooldown-seconds: 16
+      upward-velocity: 1.0
+      forward-velocity: 0.6
 
   blood:
     enabled: false
