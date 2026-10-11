@@ -1,10 +1,8 @@
 # Each entry under `aspects` defines one Aspect. `enabled: false` aspects are
 # never assigned to players and are excluded from random selection.
 #
-# fire, tide, frost, wind, earth, thunder, and void are implemented (Phase 1,
-# Phase 2 Batches A and B1, and Batch B2a). blood is listed here with its
-# final rarity/description so the file's shape is correct, but its abilities
-# are NOT implemented yet — it ships disabled until Batch B2b adds its code.
+# All eight Aspects — fire, tide, frost, wind, earth, thunder, void, and
+# blood — are implemented as of Phase 2 Batch B2b. Phase 2 is complete.
 aspects:
   fire:
     enabled: true
@@ -104,8 +102,16 @@ aspects:
       forward-velocity: 0.6
 
   blood:
-    enabled: false
+    enabled: true
     display-name: "<dark_red>Blood</dark_red>"
-    description: "Not yet implemented (planned for Phase 2)."
+    description: "Sacrifice, aggression, and overwhelming melee power."
     rarity: EPIC
-    weight: 0
+    weight: 10
+    passive:
+      melee-damage-bonus: true
+      melee-damage-bonus-percent: 10
+    active:
+      cooldown-seconds: 28
+      sacrifice-amount: 2.0
+      bonus-percent: 20
+      buff-duration-ticks: 100
