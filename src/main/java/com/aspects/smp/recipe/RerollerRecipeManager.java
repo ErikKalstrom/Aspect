@@ -25,14 +25,19 @@ public final class RerollerRecipeManager {
         if (!config.rerollerEnabled()) {
             return;
         }
-        ItemStack result = plugin.getCustomItemManager().createReroller();
-        result.setAmount(config.rerollerResultAmount());
-        ShapedRecipe recipe = new ShapedRecipe(key, result);
-        recipe.shape(config.rerollerPattern().toArray(new String[0]));
-        for (Map.Entry<Character, Material> entry : config.rerollerIngredients().entrySet()) {
-            recipe.setIngredient(entry.getKey(), entry.getValue());
+        try {
+            ItemStack result = plugin.getCustomItemManager().createReroller();
+            result.setAmount(config.rerollerResultAmount());
+            ShapedRecipe recipe = new ShapedRecipe(key, result);
+            recipe.shape(config.rerollerPattern().toArray(new String[0]));
+            for (Map.Entry<Character, Material> entry : config.rerollerIngredients().entrySet()) {
+                recipe.setIngredient(entry.getKey(), entry.getValue());
+            }
+            Bukkit.addRecipe(recipe);
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().severe("Failed to register the Reroller crafting recipe from recipes.yml: " +
+                    e.getMessage() + " — the Reroller will not be craftable until this is fixed.");
         }
-        Bukkit.addRecipe(recipe);
     }
 
     public NamespacedKey recipeKey() {

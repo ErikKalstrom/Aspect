@@ -263,25 +263,6 @@ class AspectsConfigParserTest {
     }
 
     @Test
-    void parseRecipes_rejectsAirAsIngredientMaterial() {
-        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
-                "reroller:\n" +
-                "  pattern:\n" +
-                "    - \"ADA\"\n" +
-                "    - \"DND\"\n" +
-                "    - \"ADA\"\n" +
-                "  ingredients:\n" +
-                "    A: AIR\n" +
-                "    D: DIAMOND\n" +
-                "    N: NETHER_STAR\n"));
-        List<String> errors = new ArrayList<>();
-
-        AspectsConfigParser.parseRecipes(yml, errors);
-
-        assertTrue(errors.stream().anyMatch(e -> e.contains("not a usable crafting ingredient")));
-    }
-
-    @Test
     void parseRecipes_rejectsIngredientKeyNotUsedInPattern() {
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
                 "reroller:\n" +

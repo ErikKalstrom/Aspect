@@ -112,10 +112,6 @@ public final class AspectsConfigParser {
                     errors.add("recipes.yml reroller.ingredients." + key + " has unknown material '" + materialName + "'");
                     continue;
                 }
-                if (isAirOrNonItem(material)) {
-                    errors.add("recipes.yml reroller.ingredients." + key + " (" + materialName + ") is not a usable crafting ingredient");
-                    continue;
-                }
                 ingredients.put(key.charAt(0), material);
             }
 
@@ -141,21 +137,5 @@ public final class AspectsConfigParser {
         }
 
         return new RecipesConfig(enabled, pattern, ingredients, resultAmount);
-    }
-
-    /**
-     * Mirrors the check {@code ShapedRecipe.setIngredient} performs internally (via
-     * {@code RecipeChoice.MaterialChoice}), which requires a live Bukkit item/block registry.
-     * That registry is only available when running inside a real Paper server, so outside of one
-     * (e.g. in unit tests) {@link Material#isAir()} / {@link Material#isItem()} throw. In that case
-     * fall back to a name-based check, which still correctly flags the common air-material mistake.
-     */
-    private static boolean isAirOrNonItem(Material material) {
-        try {
-            return material.isAir() || !material.isItem();
-        } catch (Error registryUnavailable) {
-            String name = material.name();
-            return name.equals("AIR") || name.endsWith("_AIR");
-        }
     }
 }
