@@ -22,41 +22,41 @@ public final class AbilityManager {
 
     public ActivationResult tryActivate(Player player) {
         if (player.isDead() || player.getGameMode() == GameMode.SPECTATOR) {
-            return ActivationResult.failure("You cannot use abilities right now.");
+            return ActivationResult.failed("You cannot use abilities right now.");
         }
 
         Aspect aspect = aspectManager.getAspect(player.getUniqueId()).orElse(null);
         if (aspect == null) {
-            return ActivationResult.failure("You do not have an Aspect assigned yet.");
+            return ActivationResult.failed("You do not have an Aspect assigned yet.");
         }
         if (!aspect.definition().enabled()) {
-            return ActivationResult.failure("Your Aspect is currently disabled on this server.");
+            return ActivationResult.failed("Your Aspect is currently disabled on this server.");
         }
         if (!protectionGate.isAllowed(player)) {
-            return ActivationResult.failure("Abilities cannot be used in this world.");
+            return ActivationResult.failed("Abilities cannot be used in this world.");
         }
         if (cooldownManager.isOnCooldown(player.getUniqueId(), aspect.id())) {
             long seconds = (cooldownManager.remainingMillis(player.getUniqueId(), aspect.id()) + 999) / 1000;
-            return ActivationResult.failure("Your ability is on cooldown for " + seconds + "s.");
+            return ActivationResult.failed("Your ability is on cooldown for " + seconds + "s.");
         }
 
         AbilityContext context = new AbilityContext(player, aspect, plugin);
         boolean activated = aspect.active().activate(context);
         if (!activated) {
-            return ActivationResult.failure("Your ability could not be activated right now.");
+            return ActivationResult.failed("Your ability could not be activated right now.");
         }
 
         long cooldownSeconds = (long) aspect.definition().getDouble("active.cooldown-seconds", 20.0);
         cooldownManager.startCooldown(player.getUniqueId(), aspect.id(), cooldownSeconds);
-        return ActivationResult.success();
+        return ActivationResult.succeeded();
     }
 
-    public record ActivationResult(boolean isSuccess, String failureMessage) {
-        public static ActivationResult success() {
+    public record ActivationResult(boolean success, String failureMessage) {
+        public static ActivationResult succeeded() {
             return new ActivationResult(true, null);
         }
 
-        public static ActivationResult failure(String message) {
+        public static ActivationResult failed(String message) {
             return new ActivationResult(false, message);
         }
     }
