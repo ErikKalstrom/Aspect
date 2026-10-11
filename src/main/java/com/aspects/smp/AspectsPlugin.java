@@ -1,8 +1,10 @@
 package com.aspects.smp;
 
+import com.aspects.smp.ability.Ability;
 import com.aspects.smp.ability.AbilityCooldownManager;
 import com.aspects.smp.ability.AbilityManager;
 import com.aspects.smp.ability.ActivationListener;
+import com.aspects.smp.ability.PassiveAbility;
 import com.aspects.smp.ability.ProtectionGate;
 import com.aspects.smp.ability.impl.FireActiveAbility;
 import com.aspects.smp.ability.impl.FirePassiveAbility;
@@ -34,8 +36,21 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public final class AspectsPlugin extends JavaPlugin {
+    private static final Map<String, Supplier<PassiveAbility>> PASSIVE_FACTORIES = Map.of(
+            "fire", FirePassiveAbility::new,
+            "tide", TidePassiveAbility::new,
+            "frost", FrostPassiveAbility::new,
+            "wind", WindPassiveAbility::new
+    );
+    private static final Map<String, Supplier<Ability>> ACTIVE_FACTORIES = Map.of(
+            "fire", FireActiveAbility::new,
+            "tide", TideActiveAbility::new,
+            "frost", FrostActiveAbility::new,
+            "wind", WindActiveAbility::new
+    );
     private ConfigManager configManager;
     private PlayerDataRepository dataRepository;
     private AspectRegistry aspectRegistry;
@@ -104,30 +119,15 @@ public final class AspectsPlugin extends JavaPlugin {
 
     private AspectRegistry buildRegistry(Map<String, AspectDefinition> definitions) {
         AspectRegistry registry = new AspectRegistry();
-
-        AspectDefinition fire = definitions.get("fire");
-        if (fire != null) {
-            registry.register(new Aspect(fire, new FirePassiveAbility(), new FireActiveAbility()));
-        }
-        AspectDefinition tide = definitions.get("tide");
-        if (tide != null) {
-            registry.register(new Aspect(tide, new TidePassiveAbility(), new TideActiveAbility()));
-        }
-        AspectDefinition frost = definitions.get("frost");
-        if (frost != null) {
-            registry.register(new Aspect(frost, new FrostPassiveAbility(), new FrostActiveAbility()));
-        }
-        AspectDefinition wind = definitions.get("wind");
-        if (wind != null) {
-            registry.register(new Aspect(wind, new WindPassiveAbility(), new WindActiveAbility()));
-        }
-
         for (AspectDefinition definition : definitions.values()) {
-            if (!definition.id().equals("fire") && !definition.id().equals("tide")
-                    && !definition.id().equals("frost") && !definition.id().equals("wind")) {
+            Supplier<PassiveAbility> passiveFactory = PASSIVE_FACTORIES.get(definition.id());
+            Supplier<Ability> activeFactory = ACTIVE_FACTORIES.get(definition.id());
+            if (passiveFactory == null || activeFactory == null) {
                 getLogger().info("Aspect '" + definition.id() +
                         "' is defined in aspects.yml but not yet implemented in code; skipping registration.");
+                continue;
             }
+            registry.register(new Aspect(definition, passiveFactory.get(), activeFactory.get()));
         }
         return registry;
     }
