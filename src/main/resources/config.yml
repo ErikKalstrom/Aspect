@@ -1,0 +1,18 @@
+# Aspects plugin — general settings.
+general:
+  debug: false
+
+storage:
+  sqlite-file: "playerdata.db"
+
+first-join:
+  enabled: true
+  sound: "entity.player.levelup"
+  particle: "TOTEM"
+  particle-count: 20
+
+world-restrictions:
+  blocked-worlds: []
+
+reroll:
+  exclude-current-aspect: true
