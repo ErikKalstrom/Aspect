@@ -30,6 +30,7 @@ public final class AbilityCooldownManager {
 
     public void clearCache(UUID playerId) {
         expiryByPlayer.remove(playerId);
+        repository.deleteCooldowns(playerId);
     }
 
     public boolean isOnCooldown(UUID playerId, String abilityId) {

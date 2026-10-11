@@ -12,12 +12,6 @@ class AdminCommandTest {
     }
 
     @Test
-    void clampGiveAmount_clampsZeroOrBelow_toOne() {
-        assertEquals(1, AdminCommand.clampGiveAmount(0));
-        assertEquals(1, AdminCommand.clampGiveAmount(-10));
-    }
-
-    @Test
     void clampGiveAmount_clampsAboveSixtyFour_toSixtyFour() {
         assertEquals(64, AdminCommand.clampGiveAmount(1000));
     }

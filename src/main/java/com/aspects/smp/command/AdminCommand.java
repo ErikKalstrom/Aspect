@@ -156,7 +156,14 @@ public final class AdminCommand {
                 return true;
             }
         }
+        if (requested < 1) {
+            sender.sendMessage(MessageUtil.parse("<red>Amount must be at least 1.</red>"));
+            return true;
+        }
         int amount = clampGiveAmount(requested);
+        if (amount != requested) {
+            sender.sendMessage(MessageUtil.parse("<yellow>Amount capped at " + amount + ".</yellow>"));
+        }
         CustomItemManager itemManager = plugin.getCustomItemManager();
         ItemStack stack = itemManager.createReroller();
         stack.setAmount(amount);
@@ -176,9 +183,6 @@ public final class AdminCommand {
     }
 
     static int clampGiveAmount(int requested) {
-        if (requested < 1) {
-            return 1;
-        }
         return Math.min(requested, 64);
     }
 
@@ -217,6 +221,9 @@ public final class AdminCommand {
         }
         plugin.getRerollerRecipeManager().register(plugin.getConfigManager().recipes());
         sender.sendMessage(MessageUtil.parse("<green>Aspects configuration reloaded.</green>"));
+        sender.sendMessage(MessageUtil.parse("<yellow>Note: messages.yml, recipes.yml, and the reveal-animation " +
+                "setting are applied live. Changes to aspects.yml and to the reroll/reset behavior flags or " +
+                "blocked-worlds in config.yml require a server restart to take effect.</yellow>"));
         return true;
     }
 

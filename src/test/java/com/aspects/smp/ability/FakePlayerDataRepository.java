@@ -43,6 +43,12 @@ public final class FakePlayerDataRepository implements PlayerDataRepository {
     }
 
     @Override
+    public CompletableFuture<Void> deleteCooldowns(UUID playerId) {
+        cooldowns.remove(playerId);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
     public void close() {
         // no-op
     }

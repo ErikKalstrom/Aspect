@@ -98,6 +98,10 @@ public final class AspectsCommand implements CommandExecutor {
             sender.sendMessage(MessageUtil.parse("<red>You do not have permission to use this command.</red>"));
             return true;
         }
+        if (!player.hasPermission("aspects.gui")) {
+            sender.sendMessage(MessageUtil.parse("<red>You do not have permission to open the Aspects menu.</red>"));
+            return true;
+        }
         new MainAspectGUI(plugin, player).open();
         return true;
     }

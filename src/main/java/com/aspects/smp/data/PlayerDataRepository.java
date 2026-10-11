@@ -16,5 +16,7 @@ public interface PlayerDataRepository {
 
     CompletableFuture<Void> saveCooldown(UUID playerId, String abilityId, long expiresAtMillis);
 
+    CompletableFuture<Void> deleteCooldowns(UUID playerId);
+
     void close();
 }

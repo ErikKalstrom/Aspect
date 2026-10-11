@@ -128,6 +128,19 @@ public final class SQLitePlayerDataRepository implements PlayerDataRepository {
     }
 
     @Override
+    public CompletableFuture<Void> deleteCooldowns(UUID playerId) {
+        return CompletableFuture.runAsync(() -> {
+            String sql = "DELETE FROM cooldowns WHERE uuid = ?";
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, playerId.toString());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                logger.severe("Failed to delete cooldowns for " + playerId + ": " + e.getMessage());
+            }
+        }, executor);
+    }
+
+    @Override
     public void close() {
         executor.shutdown();
         try {
