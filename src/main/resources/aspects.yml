@@ -1,10 +1,10 @@
 # Each entry under `aspects` defines one Aspect. `enabled: false` aspects are
 # never assigned to players and are excluded from random selection.
 #
-# fire, tide, frost, and wind are implemented (Phase 1 and Phase 2 Batch A).
-# The remaining four are listed here with their final rarity/description so
-# the file's shape is correct, but their abilities are NOT implemented yet —
-# they ship disabled until a later phase adds their code.
+# fire, tide, frost, wind, earth, and thunder are implemented (Phase 1 and
+# Phase 2 Batches A and B1). void and blood are listed here with their final
+# rarity/description so the file's shape is correct, but their abilities are
+# NOT implemented yet — they ship disabled until Batch B2 adds their code.
 aspects:
   fire:
     enabled: true
@@ -50,11 +50,19 @@ aspects:
       mining-fatigue-ticks: 40
 
   thunder:
-    enabled: false
+    enabled: true
     display-name: "<yellow>Thunder</yellow>"
-    description: "Not yet implemented (planned for Phase 2)."
+    description: "Speed, mobility, and explosive engagement."
     rarity: EPIC
-    weight: 0
+    weight: 10
+    passive:
+      speed-boost: true
+    active:
+      cooldown-seconds: 18
+      max-distance: 7.0
+      velocity-per-block: 0.6
+      vertical-boost: 0.15
+      wall-safety-margin: 0.5
 
   void:
     enabled: false
@@ -64,11 +72,17 @@ aspects:
     weight: 0
 
   earth:
-    enabled: false
+    enabled: true
     display-name: "<dark_green>Earth</dark_green>"
-    description: "Not yet implemented (planned for Phase 2)."
+    description: "Defense, stability, and holding ground."
     rarity: RARE
-    weight: 0
+    weight: 20
+    passive:
+      resistance-boost: true
+    active:
+      cooldown-seconds: 30
+      resistance-duration-ticks: 60
+      resistance-amplifier: 1
 
   wind:
     enabled: true
