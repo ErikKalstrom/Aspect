@@ -3,6 +3,7 @@ package com.aspects.smp.command;
 import com.aspects.smp.AspectsPlugin;
 import com.aspects.smp.aspect.Aspect;
 import com.aspects.smp.config.ConfigValidationException;
+import com.aspects.smp.gui.AdminGUI;
 import com.aspects.smp.item.CustomItemManager;
 import com.aspects.smp.util.MessageUtil;
 import org.bukkit.Bukkit;
@@ -24,8 +25,16 @@ public final class AdminCommand {
 
     public boolean handle(CommandSender sender, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(MessageUtil.parse(
-                    "<red>Usage: /aspects admin <set|reroll|reset|give-reroller|give|give-selection|clear-cooldown|reload|list|debug> ...</red>"));
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage(MessageUtil.parse(
+                        "<red>Usage: /aspects admin <set|reroll|reset|give-reroller|give|give-selection|clear-cooldown|reload|list|debug> ...</red>"));
+                return true;
+            }
+            if (!player.hasPermission("aspects.admin")) {
+                player.sendMessage(MessageUtil.parse("<red>You do not have permission to do that.</red>"));
+                return true;
+            }
+            new AdminGUI(plugin, player).open();
             return true;
         }
         String sub = args[0].toLowerCase();

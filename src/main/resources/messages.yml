@@ -67,3 +67,7 @@ gui:
     current-aspect-lore: "<gray>This Aspect will be replaced.</gray>"
     confirm-name: "<green>Confirm Reroll</green>"
     cancel-name: "<red>Cancel</red>"
+  admin:
+    title: "<dark_purple>Aspect Admin</dark_purple>"
+    view-aspects-name: "<aqua>View Aspect List</aqua>"
+    no-players-name: "<red>No players online</red>"
