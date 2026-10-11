@@ -6,9 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
 import java.util.Collections;
 import java.util.Set;
@@ -26,14 +24,7 @@ public final class ActivationListener implements Listener {
     }
 
     @EventHandler
-    public void onInteract(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) {
-            return;
-        }
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-            return;
-        }
-
+    public void onSwapHands(PlayerSwapHandItemsEvent event) {
         Player player = event.getPlayer();
         if (!player.isSneaking()) {
             return;
@@ -41,6 +32,8 @@ public final class ActivationListener implements Listener {
         if (player.getInventory().getItemInMainHand().getType() != Material.AIR) {
             return;
         }
+        event.setCancelled(true);
+
         if (!debounce.add(player.getUniqueId())) {
             return;
         }
