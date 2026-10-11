@@ -25,6 +25,7 @@ public final class AspectsConfigParser {
         boolean excludeCurrentOnReroll = yml.getBoolean("reroll.exclude-current-aspect", true);
         boolean revealAnimationEnabled = yml.getBoolean("reroll.reveal-animation-enabled", true);
         boolean resetImmediateReassign = yml.getBoolean("reset.immediate-reassign", true);
+        boolean respectWorldGuard = yml.getBoolean("world-restrictions.respect-worldguard", true);
 
         if (sqliteFile == null || sqliteFile.isBlank()) {
             errors.add("storage.sqlite-file must not be blank");
@@ -36,7 +37,7 @@ public final class AspectsConfigParser {
 
         return new GeneralConfig(debug, sqliteFile, firstJoinEnabled, firstJoinSound,
                 firstJoinParticle, firstJoinParticleCount, blockedWorlds, excludeCurrentOnReroll,
-                revealAnimationEnabled, resetImmediateReassign);
+                revealAnimationEnabled, resetImmediateReassign, respectWorldGuard);
     }
 
     public static Map<String, AspectDefinition> parseAspects(FileConfiguration yml, List<String> errors) {

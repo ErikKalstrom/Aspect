@@ -13,6 +13,7 @@ first-join:
 
 world-restrictions:
   blocked-worlds: []
+  respect-worldguard: true
 
 reroll:
   exclude-current-aspect: true

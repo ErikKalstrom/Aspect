@@ -360,4 +360,25 @@ class AspectsConfigParserTest {
 
         assertFalse(config.resetImmediateReassign());
     }
+
+    @Test
+    void parseGeneral_defaultsRespectWorldGuardToTrue() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(""));
+        List<String> errors = new ArrayList<>();
+
+        GeneralConfig config = AspectsConfigParser.parseGeneral(yml, errors);
+
+        assertTrue(config.respectWorldGuard());
+    }
+
+    @Test
+    void parseGeneral_readsRespectWorldGuardFalse() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "world-restrictions:\n  respect-worldguard: false\n"));
+        List<String> errors = new ArrayList<>();
+
+        GeneralConfig config = AspectsConfigParser.parseGeneral(yml, errors);
+
+        assertFalse(config.respectWorldGuard());
+    }
 }

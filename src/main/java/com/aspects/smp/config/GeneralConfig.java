@@ -12,6 +12,7 @@ public record GeneralConfig(
         List<String> blockedWorlds,
         boolean excludeCurrentOnReroll,
         boolean revealAnimationEnabled,
-        boolean resetImmediateReassign
+        boolean resetImmediateReassign,
+        boolean respectWorldGuard
 ) {
 }
