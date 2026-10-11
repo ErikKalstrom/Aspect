@@ -16,3 +16,4 @@ world-restrictions:
 
 reroll:
   exclude-current-aspect: true
+  reveal-animation-enabled: true

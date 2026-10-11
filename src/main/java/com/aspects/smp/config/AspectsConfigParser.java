@@ -23,6 +23,7 @@ public final class AspectsConfigParser {
         int firstJoinParticleCount = yml.getInt("first-join.particle-count", 20);
         List<String> blockedWorlds = yml.getStringList("world-restrictions.blocked-worlds");
         boolean excludeCurrentOnReroll = yml.getBoolean("reroll.exclude-current-aspect", true);
+        boolean revealAnimationEnabled = yml.getBoolean("reroll.reveal-animation-enabled", true);
 
         if (sqliteFile == null || sqliteFile.isBlank()) {
             errors.add("storage.sqlite-file must not be blank");
@@ -33,7 +34,8 @@ public final class AspectsConfigParser {
         }
 
         return new GeneralConfig(debug, sqliteFile, firstJoinEnabled, firstJoinSound,
-                firstJoinParticle, firstJoinParticleCount, blockedWorlds, excludeCurrentOnReroll);
+                firstJoinParticle, firstJoinParticleCount, blockedWorlds, excludeCurrentOnReroll,
+                revealAnimationEnabled);
     }
 
     public static Map<String, AspectDefinition> parseAspects(FileConfiguration yml, List<String> errors) {
@@ -100,10 +102,18 @@ public final class AspectsConfigParser {
                     errors.add("recipes.yml reroller.ingredients key '" + key + "' must be a single character");
                     continue;
                 }
+                if (key.equals(" ")) {
+                    errors.add("recipes.yml reroller.ingredients must not use a space as a key (space means an empty pattern slot)");
+                    continue;
+                }
                 String materialName = ingredientsSection.getString(key);
                 Material material = materialName == null ? null : Material.matchMaterial(materialName);
                 if (material == null) {
                     errors.add("recipes.yml reroller.ingredients." + key + " has unknown material '" + materialName + "'");
+                    continue;
+                }
+                if (isAirOrNonItem(material)) {
+                    errors.add("recipes.yml reroller.ingredients." + key + " (" + materialName + ") is not a usable crafting ingredient");
                     continue;
                 }
                 ingredients.put(key.charAt(0), material);
@@ -116,6 +126,13 @@ public final class AspectsConfigParser {
                     }
                 }
             }
+
+            for (Character ingredientKey : ingredients.keySet()) {
+                boolean used = pattern.stream().anyMatch(row -> row.indexOf(ingredientKey) >= 0);
+                if (!used) {
+                    errors.add("recipes.yml reroller.ingredients key '" + ingredientKey + "' is not used anywhere in the pattern");
+                }
+            }
         }
 
         if (resultAmount < 1) {
@@ -124,5 +141,21 @@ public final class AspectsConfigParser {
         }
 
         return new RecipesConfig(enabled, pattern, ingredients, resultAmount);
+    }
+
+    /**
+     * Mirrors the check {@code ShapedRecipe.setIngredient} performs internally (via
+     * {@code RecipeChoice.MaterialChoice}), which requires a live Bukkit item/block registry.
+     * That registry is only available when running inside a real Paper server, so outside of one
+     * (e.g. in unit tests) {@link Material#isAir()} / {@link Material#isItem()} throw. In that case
+     * fall back to a name-based check, which still correctly flags the common air-material mistake.
+     */
+    private static boolean isAirOrNonItem(Material material) {
+        try {
+            return material.isAir() || !material.isItem();
+        } catch (Error registryUnavailable) {
+            String name = material.name();
+            return name.equals("AIR") || name.endsWith("_AIR");
+        }
     }
 }

@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 
 public final class InventoryListener implements Listener {
     @EventHandler
@@ -19,6 +20,13 @@ public final class InventoryListener implements Listener {
     public void onClose(InventoryCloseEvent event) {
         if (event.getInventory().getHolder() instanceof AspectsGuiHolder holder) {
             holder.onClose(event);
+        }
+    }
+
+    @EventHandler
+    public void onDrag(InventoryDragEvent event) {
+        if (event.getInventory().getHolder() instanceof AspectsGuiHolder) {
+            event.setCancelled(true);
         }
     }
 }

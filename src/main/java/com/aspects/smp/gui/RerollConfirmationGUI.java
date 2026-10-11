@@ -135,8 +135,10 @@ public final class RerollConfirmationGUI implements AspectsGuiHolder {
             }
             MessageUtil.sendMessage(player, plugin.getConfigManager().message("reroll.new"),
                     Map.of("new", newAspect.definition().displayName()));
-            SoundUtil.play(player, "entity.player.levelup", 1.0f, 1.0f, plugin.getLogger());
-            ParticleUtil.spawn(player.getLocation(), "TOTEM_OF_UNDYING", 20, plugin.getLogger());
+            if (plugin.getConfigManager().general().revealAnimationEnabled()) {
+                SoundUtil.play(player, "entity.player.levelup", 1.0f, 1.0f, plugin.getLogger());
+                ParticleUtil.spawn(player.getLocation(), "TOTEM_OF_UNDYING", 20, plugin.getLogger());
+            }
             player.closeInventory();
         } finally {
             PROCESSING.remove(playerId);

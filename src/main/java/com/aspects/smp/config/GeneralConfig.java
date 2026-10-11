@@ -10,6 +10,7 @@ public record GeneralConfig(
         String firstJoinParticle,
         int firstJoinParticleCount,
         List<String> blockedWorlds,
-        boolean excludeCurrentOnReroll
+        boolean excludeCurrentOnReroll,
+        boolean revealAnimationEnabled
 ) {
 }

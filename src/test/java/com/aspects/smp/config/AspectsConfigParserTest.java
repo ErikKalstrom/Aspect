@@ -241,4 +241,62 @@ class AspectsConfigParserTest {
         assertTrue(errors.stream().anyMatch(e -> e.contains("result-amount")));
         assertEquals(1, config.rerollerResultAmount());
     }
+
+    @Test
+    void parseRecipes_rejectsSpaceAsIngredientKey() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "reroller:\n" +
+                "  pattern:\n" +
+                "    - \"ADA\"\n" +
+                "    - \"DND\"\n" +
+                "    - \"ADA\"\n" +
+                "  ingredients:\n" +
+                "    A: AMETHYST_SHARD\n" +
+                "    D: DIAMOND\n" +
+                "    N: NETHER_STAR\n" +
+                "    \" \": DIAMOND\n"));
+        List<String> errors = new ArrayList<>();
+
+        AspectsConfigParser.parseRecipes(yml, errors);
+
+        assertTrue(errors.stream().anyMatch(e -> e.contains("must not use a space")));
+    }
+
+    @Test
+    void parseRecipes_rejectsAirAsIngredientMaterial() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "reroller:\n" +
+                "  pattern:\n" +
+                "    - \"ADA\"\n" +
+                "    - \"DND\"\n" +
+                "    - \"ADA\"\n" +
+                "  ingredients:\n" +
+                "    A: AIR\n" +
+                "    D: DIAMOND\n" +
+                "    N: NETHER_STAR\n"));
+        List<String> errors = new ArrayList<>();
+
+        AspectsConfigParser.parseRecipes(yml, errors);
+
+        assertTrue(errors.stream().anyMatch(e -> e.contains("not a usable crafting ingredient")));
+    }
+
+    @Test
+    void parseRecipes_rejectsIngredientKeyNotUsedInPattern() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "reroller:\n" +
+                "  pattern:\n" +
+                "    - \"ADA\"\n" +
+                "    - \"DDD\"\n" +
+                "    - \"ADA\"\n" +
+                "  ingredients:\n" +
+                "    A: AMETHYST_SHARD\n" +
+                "    D: DIAMOND\n" +
+                "    N: NETHER_STAR\n"));
+        List<String> errors = new ArrayList<>();
+
+        AspectsConfigParser.parseRecipes(yml, errors);
+
+        assertTrue(errors.stream().anyMatch(e -> e.contains("is not used anywhere in the pattern")));
+    }
 }

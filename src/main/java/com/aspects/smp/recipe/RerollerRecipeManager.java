@@ -34,4 +34,8 @@ public final class RerollerRecipeManager {
         }
         Bukkit.addRecipe(recipe);
     }
+
+    public NamespacedKey recipeKey() {
+        return new NamespacedKey(plugin, RECIPE_KEY);
+    }
 }
