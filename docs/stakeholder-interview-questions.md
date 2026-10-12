@@ -34,7 +34,13 @@ All cooldowns, percentages, and amounts below were chosen using engineering judg
 
 11. **Phase 3 (Reroller item, crafting recipe, GUIs)** was never specced in detail beyond "exists." What should the Reroller item's crafting recipe be, should it be consumed on use, should it have a cooldown or usage limit, and what should the Aspect-selection GUI actually let a player see/do (just reroll randomly, or preview/pick from a list)?
 12. **Phase 4 (full admin command/permission suite)** — right now there are only two admin subcommands (`set`, `reroll`), gated by two permission nodes. What additional admin tooling do you actually want (e.g., bulk reroll, per-Aspect enable/disable toggles at runtime, a player-facing `/aspects info` command, statistics/leaderboards)?
-13. **Phase 5 (WorldGuard integration)** — none of the Aspects currently respect WorldGuard regions (e.g., Void could teleport into a protected base, Fire's AOE could damage players in a safe-zone). Do you want this gated behind WorldGuard flags, and if so, do you have specific region/flag naming conventions already in use on your server(s)?
+13. ~~**Phase 5 (WorldGuard integration)**~~ — **now implemented**, so this question has been answered by engineering judgment and is kept here only as a record of what shipped and what's still open for your input:
+    - WorldGuard is a genuine soft dependency: the plugin works identically with or without it installed, and nothing in `plugin.yml` requires it.
+    - A single new custom region flag was added, `aspects-abilities` (default `ALLOW`), set per-region with `/rg flag <region> aspects-abilities deny`. It is **not** a reuse of WorldGuard's built-in `PVP` flag, specifically so that disabling PvP in a region (e.g. a shop) doesn't silently also disable Aspect abilities there for unrelated reasons.
+    - Scope was deliberately narrow and literal to the spec's wording ("disable **offensive abilities** in protected regions"): the flag blocks **active-ability activation only** — e.g. Fire's AOE, Void's teleport. It does **not** gate passive effects (e.g. Earth's permanent Resistance), and it does not add any build/block-place/chest-protection checks — those are already WorldGuard's own job, independent of this plugin.
+    - Void's teleport also independently checks the flag at the *destination* square, so it can't be used to blink into a protected region even if activation itself happens outside one.
+    - A new `config.yml` key, `world-restrictions.respect-worldguard` (default `true`), lets you turn this whole integration off without uninstalling WorldGuard.
+    - **Open questions for you:** (a) is "active abilities only, not passives" the right scope, or did you actually want passive buffs suppressed in protected regions too (e.g. no Blood melee bonus in a PvP-disabled arena)? (b) do you have an existing region/flag naming convention on your server(s) that `aspects-abilities` should match instead? (c) is a single global flag enough, or do you eventually want per-Aspect flags (e.g. `aspects-fire`, `aspects-void`) so a region could allow some Aspects' abilities but not others?
 
 ## 6. Anything else
 
@@ -43,4 +49,4 @@ All cooldowns, percentages, and amounts below were chosen using engineering judg
 
 ---
 
-*Generated after Phase 2 (all 8 Aspects) was implemented, reviewed, and live-verified. Source: development session on 2026-10-11, repository `ErikKalstrom/Aspect`.*
+*Generated after Phase 2 (all 8 Aspects) was implemented, reviewed, and live-verified; question 13 updated after Phase 5 (WorldGuard integration) shipped. All five phases of the original spec are now complete. Source: development sessions on 2026-10-11 and 2026-10-12, repository `ErikKalstrom/Aspect`.*
