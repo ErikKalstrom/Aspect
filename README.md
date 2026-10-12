@@ -116,6 +116,37 @@ See `src/main/resources/plugin.yml` for the full, authoritative list — `aspect
 and `aspects.gui` default to all players; everything else (`aspects.inspect`,
 `aspects.admin` and its children) defaults to server operators.
 
+## Troubleshooting
+
+- **"Failed to register the Reroller crafting recipe"** in the console — `recipes.yml`
+  has an invalid pattern/ingredient combination (e.g. a pattern character with no
+  matching ingredient entry, or an unknown material name). The Reroller won't be
+  craftable until this is fixed; the recipe is otherwise left disabled rather than
+  crashing the plugin.
+- **"Reload failed — configuration errors"** from `/aspects admin reload` — the command
+  prints each specific validation error and leaves the previously-loaded configuration
+  active; it never partially applies a broken `aspects.yml`/`config.yml`. Fix the listed
+  errors and reload again.
+- **A staff member with a granted `aspects.admin.*` permission (via LuckPerms etc., not
+  an operator) can't run a command** — every admin subcommand checks its own permission
+  node independently of operator status, so this means the specific node for that
+  subcommand (see [Permissions](#permissions)) isn't actually granted — check for typos
+  or a conflicting deny elsewhere in the permission plugin's inheritance.
+- **WorldGuard region flag `aspects-abilities` doesn't seem to do anything** — confirm
+  `world-restrictions.respect-worldguard` is `true` in `config.yml` (requires a restart
+  after changing) and that WorldGuard actually loaded before Aspects — check the startup
+  log order; Aspects declares `softdepend: [WorldGuard]`, so WorldGuard should always
+  load first if it's present at all.
+- **The plugin won't even load with a "worldguard-bukkit"-related `NoClassDefFoundError`
+  or `UnsupportedClassVersionError`** — this means a non-standard WorldGuard build is
+  installed; WorldGuard is a soft dependency and Aspects works fine with it absent
+  entirely, so when in doubt, remove the WorldGuard jar and confirm Aspects still loads
+  cleanly before troubleshooting WorldGuard itself.
+- **Nothing happens when sneaking and pressing F (swap hands)** — this only activates an
+  ability when the main hand is empty; it's also debounced to one activation per client
+  packet, so a second rapid press within the same tick is intentionally ignored, not a
+  bug.
+
 ## Project docs
 
 - `docs/stakeholder-interview-questions.md` — open design questions for whoever

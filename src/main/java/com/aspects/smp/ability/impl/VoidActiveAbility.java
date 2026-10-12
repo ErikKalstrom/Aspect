@@ -26,8 +26,9 @@ public final class VoidActiveAbility implements Ability {
         World world = player.getWorld();
         Vector horizontal = DirectionUtil.horizontalFromYaw(origin.getYaw());
 
-        IntPredicate isSafeAtDistance = distance -> isSafeDestination(context, world, origin, horizontal, distance);
-        int safeDistance = pickSafeDistance(maxDistance, isSafeAtDistance);
+        IntPredicate isPathClear = distance -> isPathClearAtDistance(world, origin, horizontal, distance);
+        IntPredicate isValidLanding = distance -> isValidLandingAtDistance(context, world, origin, horizontal, distance);
+        int safeDistance = pickSafeDistance(maxDistance, isPathClear, isValidLanding);
         if (safeDistance == 0) {
             return false;
         }
@@ -47,16 +48,36 @@ public final class VoidActiveAbility implements Ability {
         return true;
     }
 
-    static int pickSafeDistance(int maxDistance, IntPredicate isSafeAtDistance) {
-        for (int distance = maxDistance; distance >= 1; distance--) {
-            if (isSafeAtDistance.test(distance)) {
-                return distance;
+    /**
+     * Walks outward one block at a time so a solid wall partway along the path stops the search from ever
+     * considering a square beyond it -- picking the farthest safe landing found before any such wall is hit.
+     * This is what makes Void Step unable to clip through a blocked wall, per spec: a destination beyond an
+     * obstruction is simply never reachable in a straight line, so it's never even evaluated as a landing spot.
+     */
+    static int pickSafeDistance(int maxDistance, IntPredicate isPathClear, IntPredicate isValidLanding) {
+        int best = 0;
+        for (int distance = 1; distance <= maxDistance; distance++) {
+            if (!isPathClear.test(distance)) {
+                break;
+            }
+            if (isValidLanding.test(distance)) {
+                best = distance;
             }
         }
-        return 0;
+        return best;
     }
 
-    private boolean isSafeDestination(AbilityContext context, World world, Location origin, Vector horizontal, int distance) {
+    private boolean isPathClearAtDistance(World world, Location origin, Vector horizontal, int distance) {
+        Location point = origin.clone().add(horizontal.clone().multiply(distance));
+        int y = point.getBlockY();
+        int bx = point.getBlockX();
+        int bz = point.getBlockZ();
+        Material feet = world.getBlockAt(bx, y, bz).getType();
+        Material head = world.getBlockAt(bx, y + 1, bz).getType();
+        return !feet.isSolid() && !head.isSolid();
+    }
+
+    private boolean isValidLandingAtDistance(AbilityContext context, World world, Location origin, Vector horizontal, int distance) {
         Location point = origin.clone().add(horizontal.clone().multiply(distance));
         if (!world.getWorldBorder().isInside(point)) {
             return false;

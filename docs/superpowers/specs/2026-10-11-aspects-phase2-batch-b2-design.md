@@ -50,6 +50,20 @@ covers the design for both; `docs/superpowers/plans/2026-10-11-aspects-phase2-ba
   fail-safe-to-zero behavior* — the part a config mistake or an edge case could get wrong — is fully testable with
   a fake predicate, the same way Thunder's wall-clamp math was.
 
+  **Correction found during a full re-read of the original functional spec, after Phase 5 shipped:** scanning
+  from the far end inward only checks whether the *landing square* is safe — it never checks whether anything
+  solid stands between the player and that square. That lets Void Step pick a safe spot beyond a thin wall and
+  land there, clipping straight through it, which directly violates the spec's explicit "Do not teleport into
+  solid blocks, lava, the void, protected regions, **or across blocked walls**" requirement (and its own listed
+  testing requirement, "Players cannot teleport through walls using Void Step") — missed by this design, by
+  Phase 2's task review, and by Phase 5's whole-branch review, none of which checked the implementation against
+  this specific sentence. Fixed by reworking the scan to walk outward from distance 1, stopping the moment it
+  hits a solid block (feet or head) at any distance — a wall now caps how far the ability can even search, rather
+  than being skippable — and returning the farthest valid landing found before that point. `pickSafeDistance` now
+  takes two predicates, `isPathClear` and `isValidLanding`, instead of one, keeping the "is this square solid"
+  check (which must apply to every intermediate step) separate from the fuller landing check (border, height,
+  lava, WorldGuard) which only matters for the one square the player would actually land on.
+
   Portal particles play at both the departure and arrival locations; a teleport sound plays once. No real
   WorldGuard region check is added — per the project's established phasing, that is Phase 5's job; a server
   without WorldGuard installed must not be affected, and this Aspect doesn't need WorldGuard to be safe by itself
