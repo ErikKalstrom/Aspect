@@ -12,6 +12,19 @@ WorldGuard region.
 - Optional: [WorldGuard](https://enginehub.org/worldguard) 7.0.x — purely a soft
   dependency, see [WorldGuard integration](#worldguard-integration) below
 
+## Download
+
+Every push to `main` is automatically built and tested, and the resulting plugin is
+published as a ZIP at the repository's
+[latest release](https://github.com/ErikKalstrom/Aspect/releases/latest) — always the
+newest build, no manual steps.
+The ZIP contains `Aspects.jar` (drop into `plugins/`), this README, and a
+`default-configs/` folder with the shipped `config.yml`/`aspects.yml`/`messages.yml`/
+`recipes.yml` for reference before installing.
+
+(Note: this is currently a private repository — anyone the ZIP is shared with needs
+read access to it, either as an invited collaborator or by the repo being made public.)
+
 ## Building
 
 ```bash
@@ -152,5 +165,7 @@ and `aspects.gui` default to all players; everything else (`aspects.inspect`,
 - `docs/stakeholder-interview-questions.md` — open design questions for whoever
   commissioned the plugin, covering balance numbers and judgment calls made during
   implementation.
+- `docs/adding-a-new-aspect.md` — step-by-step guide for adding a 9th (or later) Aspect
+  without touching the command/GUI/persistence layers.
 - `docs/superpowers/specs/` and `docs/superpowers/plans/` — the design specs and
   implementation plans this plugin was built from, phase by phase.

@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Build the plugin (runs the test suite first)
+        run: mvn --batch-mode --no-transfer-progress clean package
+
+      - name: Assemble the delivery zip
+        run: |
+          set -euo pipefail
+          STAGE=staging/Aspects
+          mkdir -p "$STAGE/default-configs"
+          JAR=$(find target -maxdepth 1 -name 'aspects-*.jar' ! -name 'original-*.jar')
+          cp "$JAR" "$STAGE/Aspects.jar"
+          cp README.md "$STAGE/README.md"
+          cp src/main/resources/config.yml src/main/resources/aspects.yml \
+             src/main/resources/messages.yml src/main/resources/recipes.yml \
+             "$STAGE/default-configs/"
+          (cd staging && zip -r ../Aspects-Plugin.zip Aspects)
+
+      - name: Publish the "latest" release
+        uses: softprops/action-gh-release@v3.0.3
+        with:
+          tag_name: latest
+          name: Latest build
+          make_latest: 'true'
+          body: |
+            Automatically built from the latest push to `main` (commit ${{ github.sha }}).
+            This link always points to the newest build -- see commit history for what changed.
+          files: Aspects-Plugin.zip
