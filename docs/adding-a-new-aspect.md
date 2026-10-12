@@ -1,9 +1,10 @@
 # Adding a new Aspect
 
-The Aspect system is registry-driven on purpose (see the original project brief's
-"Future Expansion Support" section) so a new Aspect is a small, additive change: one
-config entry, two small classes, and a one-line registration — never a change to
-`AbilityManager`, the commands, the GUIs, or the persistence layer.
+The Aspect system is registry-driven on purpose (see the `buildRegistry` refactor in
+`docs/superpowers/specs/2026-10-11-aspects-phase2-batch-b1-design.md`) so a new Aspect is
+a small, additive change: one config entry, two small classes, and a one-line
+registration — never a change to `AbilityManager`, the commands, the GUIs, or the
+persistence layer.
 
 This walks through adding a 9th Aspect, `storm` (pick your own id/theme), end to end.
 
