@@ -79,7 +79,9 @@ public final class ConfigManager {
         return new StagedConfig(stagedGeneral, stagedAspects, stagedMessages, stagedRecipes, errors);
     }
 
-    private static void putStringValues(Map<String, String> target, FileConfiguration source) {
+    /** Package-private so the merge direction (bundled first, on-disk overlaid on top) can be
+     * exercised directly by a test instead of a copy of this logic. */
+    static void putStringValues(Map<String, String> target, FileConfiguration source) {
         for (Map.Entry<String, Object> entry : source.getValues(true).entrySet()) {
             if (entry.getValue() instanceof String str) {
                 target.put(entry.getKey(), str);

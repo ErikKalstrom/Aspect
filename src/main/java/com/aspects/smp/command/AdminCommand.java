@@ -284,6 +284,10 @@ public final class AdminCommand {
             for (String error : errors) {
                 sender.sendMessage(MessageUtil.parse("<red> - " + error + "</red>"));
             }
+            sender.sendMessage(MessageUtil.parse("<yellow>The previous configuration is still active. " +
+                    "Note that a value like this may have been tolerated with a safe default at server " +
+                    "startup, but a reload never applies a config with any unresolved error — fix the " +
+                    "issue(s) above and reload again.</yellow>"));
             return true;
         }
         plugin.getRerollerRecipeManager().register(plugin.getConfigManager().recipes());

@@ -83,9 +83,13 @@ public final class MainAspectGUI implements AspectsGuiHolder {
         lore.add(aspect.definition().description());
         lore.add(" ");
         lore.add(plugin.getConfigManager().message("gui.details.passive-label") + " " + aspect.definition().passiveName());
-        lore.add("<gray>" + aspect.definition().passiveDescription() + "</gray>");
+        if (!aspect.definition().passiveDescription().isBlank()) {
+            lore.add("<gray>" + aspect.definition().passiveDescription() + "</gray>");
+        }
         lore.add(plugin.getConfigManager().message("gui.details.active-label") + " " + aspect.definition().activeName());
-        lore.add("<gray>" + aspect.definition().activeDescription() + "</gray>");
+        if (!aspect.definition().activeDescription().isBlank()) {
+            lore.add("<gray>" + aspect.definition().activeDescription() + "</gray>");
+        }
         lore.add(" ");
         lore.add(cooldownLine);
         meta.lore(lore.stream().map(line -> MessageUtil.parse(line).decoration(TextDecoration.ITALIC, false)).toList());

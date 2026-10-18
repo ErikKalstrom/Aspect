@@ -75,9 +75,13 @@ public final class AspectDetailsGUI implements AspectsGuiHolder {
         lore.add(aspect.definition().description());
         lore.add(" ");
         lore.add(plugin.getConfigManager().message("gui.details.passive-label") + " " + aspect.definition().passiveName());
-        lore.add("<gray>" + aspect.definition().passiveDescription() + "</gray>");
+        if (!aspect.definition().passiveDescription().isBlank()) {
+            lore.add("<gray>" + aspect.definition().passiveDescription() + "</gray>");
+        }
         lore.add(plugin.getConfigManager().message("gui.details.active-label") + " " + aspect.definition().activeName());
-        lore.add("<gray>" + aspect.definition().activeDescription() + "</gray>");
+        if (!aspect.definition().activeDescription().isBlank()) {
+            lore.add("<gray>" + aspect.definition().activeDescription() + "</gray>");
+        }
         lore.add(plugin.getConfigManager().message("gui.details.cooldown-label") + " " +
                 (long) aspect.definition().getDouble("active.cooldown-seconds", 20.0) + "s");
 

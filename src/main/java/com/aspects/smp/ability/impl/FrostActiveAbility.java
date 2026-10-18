@@ -5,8 +5,11 @@ import com.aspects.smp.ability.AbilityContext;
 import com.aspects.smp.aspect.AspectDefinition;
 import com.aspects.smp.util.ParticleUtil;
 import com.aspects.smp.util.SoundUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -35,6 +38,18 @@ public final class FrostActiveAbility implements Ability {
                 continue;
             }
             if (!context.plugin().getProtectionGate().canTargetPlayer(caster, target)) {
+                continue;
+            }
+            // Frost Nova applies its debuffs directly rather than through LivingEntity#damage(...),
+            // so unlike Fire it never goes through an event a third-party protection plugin could
+            // observe and cancel. Firing a zero-damage EntityDamageByEntityEvent here -- without
+            // ever actually reducing health -- gives those plugins the same chance to participate,
+            // per the spec's "apply damage through supported APIs ... that allows protection plugins
+            // to participate."
+            EntityDamageByEntityEvent syntheticHit = new EntityDamageByEntityEvent(
+                    caster, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, 0.0);
+            Bukkit.getPluginManager().callEvent(syntheticHit);
+            if (syntheticHit.isCancelled()) {
                 continue;
             }
             target.addPotionEffect(new PotionEffect(

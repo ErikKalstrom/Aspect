@@ -79,19 +79,19 @@ public final class AspectsConfigParser {
             try {
                 rarity = AspectRarity.valueOf(rarityRaw.toUpperCase(Locale.ROOT));
             } catch (IllegalArgumentException e) {
-                errors.add("aspects." + id + ".rarity has unknown value '" + rarityRaw + "'");
+                errors.add("aspects.yml aspects." + id + ".rarity has unknown value '" + rarityRaw + "'");
                 rarity = AspectRarity.COMMON;
             }
             if (weight < 0) {
-                errors.add("aspects." + id + ".weight must not be negative");
+                errors.add("aspects.yml aspects." + id + ".weight must not be negative");
                 weight = 0;
             }
             Material icon = Material.matchMaterial(iconRaw);
             if (icon == null) {
-                errors.add("aspects." + id + ".icon has unknown material '" + iconRaw + "'");
+                errors.add("aspects.yml aspects." + id + ".icon has unknown material '" + iconRaw + "'");
                 icon = Material.STONE;
             } else if (icon.name().equals("AIR") || icon.name().endsWith("_AIR")) {
-                errors.add("aspects." + id + ".icon must not be an air material (" + iconRaw + ") — icons must be displayable items");
+                errors.add("aspects.yml aspects." + id + ".icon must not be an air material (" + iconRaw + ") — icons must be displayable items");
                 icon = Material.STONE;
             }
 

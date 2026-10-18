@@ -128,17 +128,21 @@ public final class AspectsCommand implements CommandExecutor {
         player.sendMessage(MessageUtil.parse(
                 "<dark_purple>Description:</dark_purple> <white>" + aspect.definition().description() + "</white>"));
         player.sendMessage(MessageUtil.parse(
-                "<dark_purple>Passive:</dark_purple> <white>" + aspect.definition().passiveName() + "</white> - " +
-                        aspect.definition().passiveDescription()));
+                "<dark_purple>Passive:</dark_purple> <white>" + aspect.definition().passiveName() + "</white>" +
+                        describeSuffix(aspect.definition().passiveDescription())));
         player.sendMessage(MessageUtil.parse(
-                "<dark_purple>Active:</dark_purple> <white>" + aspect.definition().activeName() + "</white> - " +
-                        aspect.definition().activeDescription()));
+                "<dark_purple>Active:</dark_purple> <white>" + aspect.definition().activeName() + "</white>" +
+                        describeSuffix(aspect.definition().activeDescription())));
         long remainingMillis = plugin.getCooldownManager().remainingMillis(player.getUniqueId(), aspect.id());
         String cooldownText = remainingMillis > 0
                 ? "<red>" + ((remainingMillis + 999) / 1000) + "s remaining</red>"
                 : "<green>Ready</green>";
         player.sendMessage(MessageUtil.parse("<dark_purple>Cooldown:</dark_purple> " + cooldownText));
         return true;
+    }
+
+    private String describeSuffix(String description) {
+        return description.isBlank() ? "" : " - " + description;
     }
 
     private String[] shift(String[] args) {

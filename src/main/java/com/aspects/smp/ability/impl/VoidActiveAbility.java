@@ -28,7 +28,11 @@ public final class VoidActiveAbility implements Ability {
     private static final double PATH_SAMPLE_STEP = 0.25;
 
     /** Half the player hitbox width (~0.6 wide), checked either side of the path's center line so a
-     * diagonal cast can't slip through a corner gap too narrow for a player to actually fit through. */
+     * diagonal cast can't slip through a corner gap too narrow for a player to actually fit through.
+     * Note: a 45-degree diagonal hitbox corner actually reaches ~0.42 blocks sideways, slightly more
+     * than this; a corner intruding between 0.3 and 0.42 blocks is a known, accepted gap for a
+     * teleport (as opposed to physically walked movement, which Minecraft's own collision already
+     * governs) -- tightening this further would cost more sampling for a vanishingly narrow case. */
     private static final double HITBOX_HALF_WIDTH = 0.3;
 
     /** How far below the caster's own height a landing column may drop, instead of requiring the

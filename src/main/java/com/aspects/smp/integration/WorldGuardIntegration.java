@@ -22,6 +22,9 @@ public final class WorldGuardIntegration {
         if (!present || hook == null) {
             return true;
         }
+        if (hasRegionBypass(player, location)) {
+            return true;
+        }
         return hook.isAbilityAllowed(location, player);
     }
 
@@ -29,6 +32,21 @@ public final class WorldGuardIntegration {
         if (!present || hook == null) {
             return true;
         }
+        if (hasRegionBypass(caster, casterLocation)) {
+            return true;
+        }
         return hook.isPvpAllowed(casterLocation, targetLocation, caster);
+    }
+
+    /**
+     * WorldGuard's own region-bypass permission ({@code worldguard.region.bypass.<world>}, typically
+     * granted to admins/moderators) exempts a player from every region restriction WorldGuard itself
+     * enforces — but {@link com.sk89q.worldguard.protection.regions.RegionQuery} does not apply it
+     * automatically; that only happens inside WorldGuard's own listeners. Checking the documented
+     * permission node directly here keeps bypass-holders consistent between WorldGuard's own
+     * enforcement and this plugin's.
+     */
+    private boolean hasRegionBypass(Player player, Location location) {
+        return player.hasPermission("worldguard.region.bypass." + location.getWorld().getName());
     }
 }

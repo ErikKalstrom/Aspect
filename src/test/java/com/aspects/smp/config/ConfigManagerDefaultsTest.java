@@ -19,23 +19,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ConfigManagerDefaultsTest {
 
     @Test
-    void mergingBundledThenOnDisk_onDiskKeyWins_bundledOnlyKeyIsBackfilled() {
+    void puttingBundledThenOnDisk_onDiskKeyWins_bundledOnlyKeyIsBackfilled() {
         YamlConfiguration onDisk = YamlConfiguration.loadConfiguration(new StringReader(
                 "first-join:\n  line1: \"Custom line 1\"\n"));
         YamlConfiguration bundled = YamlConfiguration.loadConfiguration(new StringReader(
                 "first-join:\n  line1: \"Default line 1\"\n  line4: \"Default line 4\"\n"));
 
         Map<String, String> merged = new HashMap<>();
-        for (Map.Entry<String, Object> entry : bundled.getValues(true).entrySet()) {
-            if (entry.getValue() instanceof String str) {
-                merged.put(entry.getKey(), str);
-            }
-        }
-        for (Map.Entry<String, Object> entry : onDisk.getValues(true).entrySet()) {
-            if (entry.getValue() instanceof String str) {
-                merged.put(entry.getKey(), str);
-            }
-        }
+        ConfigManager.putStringValues(merged, bundled);
+        ConfigManager.putStringValues(merged, onDisk);
 
         assertEquals("Custom line 1", merged.get("first-join.line1"));
         assertEquals("Default line 4", merged.get("first-join.line4"));
