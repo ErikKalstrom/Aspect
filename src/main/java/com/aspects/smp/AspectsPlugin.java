@@ -104,7 +104,7 @@ public final class AspectsPlugin extends JavaPlugin {
         List<String> configWarnings = configManager.loadAll();
         if (!configWarnings.isEmpty()) {
             getLogger().warning("Configuration has " + configWarnings.size() +
-                    " issue(s); a safe default was used for each instead:");
+                    " issue(s) -- a safe default was used where applicable, see each line below:");
             configWarnings.forEach(warning -> getLogger().warning(" - " + warning));
         }
 

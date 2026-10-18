@@ -1,6 +1,7 @@
 package com.aspects.smp.config;
 
 import com.aspects.smp.aspect.AspectDefinition;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -59,12 +60,12 @@ public final class ConfigManager {
         saveResourceIfMissing("messages.yml");
         saveResourceIfMissing("recipes.yml");
 
-        FileConfiguration configYml = loadYaml("config.yml");
-        FileConfiguration aspectsYml = loadYaml("aspects.yml");
-        FileConfiguration messagesYml = loadYaml("messages.yml");
-        FileConfiguration recipesYml = loadYaml("recipes.yml");
-
         List<String> errors = new ArrayList<>();
+        FileConfiguration configYml = loadYaml("config.yml", errors);
+        FileConfiguration aspectsYml = loadYaml("aspects.yml", errors);
+        FileConfiguration messagesYml = loadYaml("messages.yml", errors);
+        FileConfiguration recipesYml = loadYaml("recipes.yml", errors);
+
         GeneralConfig stagedGeneral = AspectsConfigParser.parseGeneral(configYml, errors);
         Map<String, AspectDefinition> stagedAspects = AspectsConfigParser.parseAspects(aspectsYml, errors);
         RecipesConfig stagedRecipes = AspectsConfigParser.parseRecipes(recipesYml, errors);
@@ -103,9 +104,24 @@ public final class ConfigManager {
         }
     }
 
-    private FileConfiguration loadYaml(String name) {
+    /**
+     * Unlike the static {@code YamlConfiguration.loadConfiguration(File)}, this surfaces a YAML
+     * syntax error as a reportable validation error instead of silently logging it and returning an
+     * empty configuration. Every key is still read with a safe Java-literal default downstream
+     * (via {@code yml.getX(key, default)}), so a syntax error still never crashes the plugin -- it
+     * just now also shows up in the warning list on startup and correctly blocks
+     * {@code /aspects admin reload} from applying it, instead of silently falling back to defaults
+     * while reporting success.
+     */
+    private FileConfiguration loadYaml(String name, List<String> errors) {
         File file = new File(plugin.getDataFolder(), name);
-        return YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration config = new YamlConfiguration();
+        try {
+            config.load(file);
+        } catch (IOException | InvalidConfigurationException e) {
+            errors.add(name + " has a YAML syntax error, using defaults for this file: " + e.getMessage());
+        }
+        return config;
     }
 
     /**

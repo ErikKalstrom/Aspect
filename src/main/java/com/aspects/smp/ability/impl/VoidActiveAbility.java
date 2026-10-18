@@ -143,30 +143,42 @@ public final class VoidActiveAbility implements Ability {
         int bz = point.getBlockZ();
         int top = point.getBlockY();
         int bottom = Math.max(top - MAX_STEP_DOWN, world.getMinHeight() + 1);
-        if (top + 1 >= world.getMaxHeight() || !isPassableAt(world, bx, top + 1, bz)) {
+        if (top + 1 >= world.getMaxHeight()) {
+            return OptionalInt.empty();
+        }
+        IntPredicate isPassableAt = y -> isPassable(world.getBlockAt(bx, y, bz).getType());
+        IntPredicate isSafeFloorAt = y -> {
+            Material floor = world.getBlockAt(bx, y - 1, bz).getType();
+            return floor.isSolid() && !HAZARD_MATERIALS.contains(floor);
+        };
+        IntPredicate isAllowedAt = y -> context.plugin().getProtectionGate().isLocationAllowed(
+                new Location(world, bx + 0.5, y, bz + 0.5), context.player());
+        return scanForLandingY(top, bottom, isPassableAt, isSafeFloorAt, isAllowedAt);
+    }
+
+    /**
+     * Pure downward-scan algorithm extracted for unit testing, mirroring {@link #pickSafeDistance}'s
+     * extraction: searches from {@code top} down to {@code bottom} for the first height whose floor is
+     * safe, stopping immediately at the first non-passable layer -- exactly like a horizontal wall
+     * stops {@code pickSafeDistance} -- so it can never return a landing on the far side of an
+     * obstruction. A safe floor that is protection-denied ends the search entirely rather than
+     * continuing deeper, since real solid ground means the player can't physically sink through it to
+     * reach a lower candidate.
+     */
+    static OptionalInt scanForLandingY(int top, int bottom, IntPredicate isPassableAt,
+                                        IntPredicate isSafeFloorAt, IntPredicate isAllowedAt) {
+        if (!isPassableAt.test(top + 1)) {
             return OptionalInt.empty();
         }
         for (int y = top; y >= bottom; y--) {
-            if (!isPassableAt(world, bx, y, bz)) {
+            if (!isPassableAt.test(y)) {
                 return OptionalInt.empty();
             }
-            Material floor = world.getBlockAt(bx, y - 1, bz).getType();
-            if (floor.isSolid() && !HAZARD_MATERIALS.contains(floor)) {
-                Location candidate = new Location(world, bx + 0.5, y, bz + 0.5);
-                if (context.plugin().getProtectionGate().isLocationAllowed(candidate, context.player())) {
-                    return OptionalInt.of(y);
-                }
-                // Real solid ground exists right here but this exact spot is protection-denied -- the
-                // player can't physically sink through solid ground to try a lower spot instead, so
-                // there is no valid landing in this column at all.
-                return OptionalInt.empty();
+            if (isSafeFloorAt.test(y)) {
+                return isAllowedAt.test(y) ? OptionalInt.of(y) : OptionalInt.empty();
             }
         }
         return OptionalInt.empty();
-    }
-
-    private boolean isPassableAt(World world, int bx, int y, int bz) {
-        return isPassable(world.getBlockAt(bx, y, bz).getType());
     }
 
     private static boolean isPassable(Material material) {
