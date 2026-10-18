@@ -2,7 +2,6 @@ package com.aspects.smp.command;
 
 import com.aspects.smp.AspectsPlugin;
 import com.aspects.smp.aspect.Aspect;
-import com.aspects.smp.config.ConfigValidationException;
 import com.aspects.smp.gui.AdminGUI;
 import com.aspects.smp.item.CustomItemManager;
 import com.aspects.smp.util.MessageUtil;
@@ -13,6 +12,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -278,11 +278,10 @@ public final class AdminCommand {
             sender.sendMessage(MessageUtil.parse("<red>You do not have permission to do that.</red>"));
             return true;
         }
-        try {
-            plugin.getConfigManager().loadAll();
-        } catch (ConfigValidationException e) {
+        List<String> errors = plugin.getConfigManager().tryReload();
+        if (!errors.isEmpty()) {
             sender.sendMessage(MessageUtil.parse("<red>Reload failed — configuration errors:</red>"));
-            for (String error : e.errors()) {
+            for (String error : errors) {
                 sender.sendMessage(MessageUtil.parse("<red> - " + error + "</red>"));
             }
             return true;

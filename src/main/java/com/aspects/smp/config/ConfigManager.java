@@ -23,7 +23,33 @@ public final class ConfigManager {
         this.plugin = plugin;
     }
 
-    public void loadAll() throws ConfigValidationException {
+    /**
+     * Parses and applies configuration unconditionally. Every individual malformed value already
+     * falls back to a safe default inside {@link AspectsConfigParser} — this commits those
+     * defaults and returns the validation warnings rather than failing the whole plugin over one
+     * bad value. Used for the initial load in {@code onEnable()}, where there is no previous
+     * known-good configuration to fall back to instead.
+     */
+    public List<String> loadAll() {
+        StagedConfig staged = parse();
+        apply(staged);
+        return staged.errors();
+    }
+
+    /**
+     * Parses a fresh configuration snapshot and only applies it if it is free of validation
+     * errors, leaving the current configuration completely untouched otherwise. Used by
+     * {@code /aspects admin reload}, which must never partially apply a broken configuration.
+     */
+    public List<String> tryReload() {
+        StagedConfig staged = parse();
+        if (staged.errors().isEmpty()) {
+            apply(staged);
+        }
+        return staged.errors();
+    }
+
+    private StagedConfig parse() {
         plugin.saveDefaultConfig();
         saveResourceIfMissing("aspects.yml");
         saveResourceIfMissing("messages.yml");
@@ -46,14 +72,14 @@ public final class ConfigManager {
             }
         }
 
-        if (!errors.isEmpty()) {
-            throw new ConfigValidationException(errors);
-        }
+        return new StagedConfig(stagedGeneral, stagedAspects, stagedMessages, stagedRecipes, errors);
+    }
 
-        this.generalConfig = stagedGeneral;
-        this.aspectDefinitions = stagedAspects;
-        this.messages = stagedMessages;
-        this.recipesConfig = stagedRecipes;
+    private void apply(StagedConfig staged) {
+        this.generalConfig = staged.general();
+        this.aspectDefinitions = staged.aspects();
+        this.messages = staged.messages();
+        this.recipesConfig = staged.recipes();
     }
 
     private void saveResourceIfMissing(String name) {
@@ -82,5 +108,9 @@ public final class ConfigManager {
 
     public RecipesConfig recipes() {
         return recipesConfig;
+    }
+
+    private record StagedConfig(GeneralConfig general, Map<String, AspectDefinition> aspects,
+                                 Map<String, String> messages, RecipesConfig recipes, List<String> errors) {
     }
 }

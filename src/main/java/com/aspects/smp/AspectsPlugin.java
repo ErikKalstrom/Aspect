@@ -32,7 +32,6 @@ import com.aspects.smp.command.AdminCommand;
 import com.aspects.smp.command.AspectsCommand;
 import com.aspects.smp.command.AspectsTabCompleter;
 import com.aspects.smp.config.ConfigManager;
-import com.aspects.smp.config.ConfigValidationException;
 import com.aspects.smp.item.CustomItemManager;
 import com.aspects.smp.data.PlayerDataRepository;
 import com.aspects.smp.data.SQLitePlayerDataRepository;
@@ -52,6 +51,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -101,13 +101,11 @@ public final class AspectsPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         configManager = new ConfigManager(this);
-        try {
-            configManager.loadAll();
-        } catch (ConfigValidationException e) {
-            getLogger().severe("Failed to load configuration, disabling plugin:");
-            e.errors().forEach(error -> getLogger().severe(" - " + error));
-            getServer().getPluginManager().disablePlugin(this);
-            return;
+        List<String> configWarnings = configManager.loadAll();
+        if (!configWarnings.isEmpty()) {
+            getLogger().warning("Configuration has " + configWarnings.size() +
+                    " issue(s); a safe default was used for each instead:");
+            configWarnings.forEach(warning -> getLogger().warning(" - " + warning));
         }
 
         dataRepository = new SQLitePlayerDataRepository(
