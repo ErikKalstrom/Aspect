@@ -40,22 +40,34 @@ final class WorldGuardHook {
     }
 
     /**
-     * Checks WorldGuard's own built-in {@code PVP} flag at a location — independent of the
-     * {@code aspects-abilities} flag above, which only gates ability activation, not combat itself.
+     * Checks WorldGuard's own built-in {@code PVP} flag at both the caster's and the target's
+     * location — independent of the {@code aspects-abilities} flag above, which only gates ability
+     * activation, not combat itself. Mirrors WorldGuard's own internal PvP enforcement
+     * ({@code RegionProtectionListener}) exactly: both locations must resolve to "not DENY", and the
+     * target's location must additionally pass {@code testBuild}, which is what actually accounts for
+     * region membership (a non-member is blocked in a region that doesn't explicitly set {@code pvp}
+     * at all, not just one that explicitly denies it).
      *
-     * <p>Deliberately uses {@code queryState(...) != DENY} rather than {@code testState(...)}: the
-     * PVP flag is registered by WorldGuard itself with a {@code false} coded default, which means
-     * {@link StateFlag#getDefault()} returns {@code null} ("no decision"), not an explicit ALLOW —
-     * and {@code testState}/{@code StateFlag.test(...)} treats a {@code null} result as denied. That
-     * would make this method return {@code false} (PvP not allowed) everywhere WorldGuard is
-     * installed, for any point not covered by a region that explicitly sets {@code pvp}, which is
-     * not what this flag means in practice. WorldGuard's own internal PvP enforcement uses this same
-     * {@code != DENY} pattern for exactly that reason, treating "no applicable region" as allowed.
+     * <p>The two {@code queryState(...) != DENY} checks are deliberate, not {@code testState(...)}:
+     * the PVP flag is registered by WorldGuard itself with a {@code false} coded default, which means
+     * {@link StateFlag#getDefault()} returns {@code null} ("no decision"), not an explicit ALLOW — and
+     * {@code testState}/{@code StateFlag.test(...)} treats a {@code null} result as denied. That would
+     * make this method return {@code false} (PvP not allowed) everywhere WorldGuard is installed, for
+     * any point not covered by a region that explicitly sets {@code pvp}, which is not what this flag
+     * means in practice.
      */
-    boolean isPvpAllowed(Location location, Player actor) {
+    boolean isPvpAllowed(Location casterLocation, Location targetLocation, Player caster) {
         RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
-        LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(actor);
-        return query.queryState(BukkitAdapter.adapt(location), localPlayer, Flags.PVP) != StateFlag.State.DENY;
+        LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(caster);
+        com.sk89q.worldedit.util.Location adaptedCaster = BukkitAdapter.adapt(casterLocation);
+        com.sk89q.worldedit.util.Location adaptedTarget = BukkitAdapter.adapt(targetLocation);
+        if (query.queryState(adaptedCaster, localPlayer, Flags.PVP) == StateFlag.State.DENY) {
+            return false;
+        }
+        if (query.queryState(adaptedTarget, localPlayer, Flags.PVP) == StateFlag.State.DENY) {
+            return false;
+        }
+        return query.testBuild(adaptedTarget, localPlayer, Flags.PVP);
     }
 
     private void registerFlag(Plugin plugin) {

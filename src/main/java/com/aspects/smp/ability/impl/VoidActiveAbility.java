@@ -31,9 +31,10 @@ public final class VoidActiveAbility implements Ability {
      * diagonal cast can't slip through a corner gap too narrow for a player to actually fit through. */
     private static final double HITBOX_HALF_WIDTH = 0.3;
 
-    /** How far up/down from the caster's own height a landing column may be, closest-to-level first:
-     * accepts stepping up one block or down up to three, instead of requiring perfectly flat ground. */
-    private static final int MAX_STEP_UP = 1;
+    /** How far below the caster's own height a landing column may drop, instead of requiring the
+     * floor to sit at exactly the caster's own feet height. (A step up isn't reachable here: the
+     * horizontal path is only ever validated at the caster's own height, so a higher landing would
+     * place the player somewhere the dash itself was never actually checked as clear.) */
     private static final int MAX_STEP_DOWN = 3;
 
     @Override
@@ -124,45 +125,44 @@ public final class VoidActiveAbility implements Ability {
     }
 
     /**
-     * Searches for solid, non-hazardous footing near the caster's own height at a candidate column,
-     * closest-to-level first (one block up, then level, then up to three blocks down) instead of
-     * requiring the floor to sit at exactly the caster's own feet height. Without this, casting
-     * mid-jump, down a single step, or over a slab/stair would always fail even though a safe
-     * landing exists just above or below the sampled point.
+     * Searches downward from the caster's own height for the first solid, non-hazardous floor,
+     * instead of requiring the floor to sit at exactly the caster's own feet height -- without this,
+     * casting down a single step would always fail even though a safe landing exists just below the
+     * sampled point. Scans one block layer at a time and stops the moment a layer isn't passable,
+     * exactly like a horizontal wall stops {@link #pickSafeDistance}: a solid or hazardous block
+     * blocks any further descent, so this can never return a landing on the far side of one -- the
+     * earlier version checked each candidate height's own three blocks independently and could skip
+     * straight past an obstruction to a lower, unreachable candidate.
      */
     private OptionalInt findLandingY(AbilityContext context, World world, Location point) {
         int bx = point.getBlockX();
         int bz = point.getBlockZ();
-        int originY = point.getBlockY();
-        for (int offset = MAX_STEP_UP; offset >= -MAX_STEP_DOWN; offset--) {
-            int y = originY + offset;
-            if (y - 1 < world.getMinHeight() || y + 1 >= world.getMaxHeight()) {
-                continue;
+        int top = point.getBlockY();
+        int bottom = Math.max(top - MAX_STEP_DOWN, world.getMinHeight() + 1);
+        if (top + 1 >= world.getMaxHeight() || !isPassableAt(world, bx, top + 1, bz)) {
+            return OptionalInt.empty();
+        }
+        for (int y = top; y >= bottom; y--) {
+            if (!isPassableAt(world, bx, y, bz)) {
+                return OptionalInt.empty();
             }
-            if (isSafeLandingColumn(world, bx, y, bz)) {
+            Material floor = world.getBlockAt(bx, y - 1, bz).getType();
+            if (floor.isSolid() && !HAZARD_MATERIALS.contains(floor)) {
                 Location candidate = new Location(world, bx + 0.5, y, bz + 0.5);
                 if (context.plugin().getProtectionGate().isLocationAllowed(candidate, context.player())) {
                     return OptionalInt.of(y);
                 }
+                // Real solid ground exists right here but this exact spot is protection-denied -- the
+                // player can't physically sink through solid ground to try a lower spot instead, so
+                // there is no valid landing in this column at all.
+                return OptionalInt.empty();
             }
         }
         return OptionalInt.empty();
     }
 
-    private boolean isSafeLandingColumn(World world, int bx, int y, int bz) {
-        Material feet = world.getBlockAt(bx, y, bz).getType();
-        Material head = world.getBlockAt(bx, y + 1, bz).getType();
-        Material floor = world.getBlockAt(bx, y - 1, bz).getType();
-        return isSafeLanding(feet, head, floor);
-    }
-
-    /**
-     * Pure landing-safety decision, extracted so it can be unit-tested without a live Bukkit World:
-     * feet/head must be passable (not solid, not a hazard like fire or powder snow), and the floor
-     * must be real solid, non-hazardous ground -- never open air, a cliff edge, or the void itself.
-     */
-    static boolean isSafeLanding(Material feet, Material head, Material floor) {
-        return isPassable(feet) && isPassable(head) && floor.isSolid() && !HAZARD_MATERIALS.contains(floor);
+    private boolean isPassableAt(World world, int bx, int y, int bz) {
+        return isPassable(world.getBlockAt(bx, y, bz).getType());
     }
 
     private static boolean isPassable(Material material) {

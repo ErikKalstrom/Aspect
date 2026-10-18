@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -89,59 +90,66 @@ public final class AspectsConfigParser {
 
     public static RecipesConfig parseRecipes(FileConfiguration yml, List<String> errors) {
         boolean enabled = yml.getBoolean("reroller.enabled", true);
-        List<String> pattern = yml.getStringList("reroller.pattern");
         int resultAmount = yml.getInt("reroller.result-amount", 1);
+
+        List<String> pattern = yml.getStringList("reroller.pattern");
+        Map<Character, Material> ingredients = new LinkedHashMap<>();
+        List<String> recipeErrors = new ArrayList<>();
 
         boolean patternValid = pattern.size() == 3 && pattern.stream().allMatch(row -> row.length() == 3);
         if (pattern.size() != 3) {
-            errors.add("recipes.yml reroller.pattern must have exactly 3 rows");
+            recipeErrors.add("recipes.yml reroller.pattern must have exactly 3 rows");
         } else if (!patternValid) {
-            errors.add("recipes.yml reroller.pattern rows must each be exactly 3 characters");
-        }
-        if (!patternValid) {
-            pattern = List.of("ADA", "DND", "ADA");
+            recipeErrors.add("recipes.yml reroller.pattern rows must each be exactly 3 characters");
         }
 
-        Map<Character, Material> ingredients = new LinkedHashMap<>();
         ConfigurationSection ingredientsSection = yml.getConfigurationSection("reroller.ingredients");
         if (ingredientsSection == null) {
-            errors.add("recipes.yml is missing the 'reroller.ingredients' section");
-            ingredients.put('A', Material.AMETHYST_SHARD);
-            ingredients.put('D', Material.DIAMOND);
-            ingredients.put('N', Material.NETHER_STAR);
+            recipeErrors.add("recipes.yml is missing the 'reroller.ingredients' section");
         } else {
             for (String key : ingredientsSection.getKeys(false)) {
                 if (key.length() != 1) {
-                    errors.add("recipes.yml reroller.ingredients key '" + key + "' must be a single character");
+                    recipeErrors.add("recipes.yml reroller.ingredients key '" + key + "' must be a single character");
                     continue;
                 }
                 if (key.equals(" ")) {
-                    errors.add("recipes.yml reroller.ingredients must not use a space as a key (space means an empty pattern slot)");
+                    recipeErrors.add("recipes.yml reroller.ingredients must not use a space as a key (space means an empty pattern slot)");
                     continue;
                 }
                 String materialName = ingredientsSection.getString(key);
                 Material material = materialName == null ? null : Material.matchMaterial(materialName);
                 if (material == null) {
-                    errors.add("recipes.yml reroller.ingredients." + key + " has unknown material '" + materialName + "'");
+                    recipeErrors.add("recipes.yml reroller.ingredients." + key + " has unknown material '" + materialName + "'");
                     continue;
                 }
                 ingredients.put(key.charAt(0), material);
             }
+        }
 
+        if (patternValid && ingredientsSection != null) {
             for (String row : pattern) {
                 for (char c : row.toCharArray()) {
                     if (c != ' ' && !ingredients.containsKey(c)) {
-                        errors.add("recipes.yml reroller.pattern uses character '" + c + "' with no matching ingredient");
+                        recipeErrors.add("recipes.yml reroller.pattern uses character '" + c + "' with no matching ingredient");
                     }
                 }
             }
-
             for (Character ingredientKey : ingredients.keySet()) {
                 boolean used = pattern.stream().anyMatch(row -> row.indexOf(ingredientKey) >= 0);
                 if (!used) {
-                    errors.add("recipes.yml reroller.ingredients key '" + ingredientKey + "' is not used anywhere in the pattern");
+                    recipeErrors.add("recipes.yml reroller.ingredients key '" + ingredientKey + "' is not used anywhere in the pattern");
                 }
             }
+        }
+
+        // Any recipe-related problem falls back to the WHOLE shipped default recipe (pattern and
+        // ingredients together), never a mix of valid and broken pieces -- a pattern fixed up on its
+        // own but paired with the server's own (unrelated) custom ingredients, or vice versa, could
+        // still leave unmatched characters and fail to register at all.
+        if (!recipeErrors.isEmpty()) {
+            errors.addAll(recipeErrors);
+            pattern = List.of("ADA", "DND", "ADA");
+            ingredients = defaultIngredients();
         }
 
         if (resultAmount < 1) {
@@ -150,5 +158,13 @@ public final class AspectsConfigParser {
         }
 
         return new RecipesConfig(enabled, pattern, ingredients, resultAmount);
+    }
+
+    private static Map<Character, Material> defaultIngredients() {
+        Map<Character, Material> defaults = new LinkedHashMap<>();
+        defaults.put('A', Material.AMETHYST_SHARD);
+        defaults.put('D', Material.DIAMOND);
+        defaults.put('N', Material.NETHER_STAR);
+        return defaults;
     }
 }
