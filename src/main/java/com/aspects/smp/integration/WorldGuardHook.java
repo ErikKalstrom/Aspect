@@ -31,11 +31,15 @@ final class WorldGuardHook {
     }
 
     boolean isAbilityAllowed(Location location, Player player) {
+        LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(player);
+        if (WorldGuard.getInstance().getPlatform().getSessionManager()
+                .hasBypass(localPlayer, BukkitAdapter.adapt(location.getWorld()))) {
+            return true;
+        }
         if (abilitiesFlag == null) {
             return true;
         }
         RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
-        LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(player);
         return query.testState(BukkitAdapter.adapt(location), localPlayer, abilitiesFlag);
     }
 
@@ -55,6 +59,11 @@ final class WorldGuardHook {
      * make this method return {@code false} (PvP not allowed) everywhere WorldGuard is installed, for
      * any point not covered by a region that explicitly sets {@code pvp}, which is not what this flag
      * means in practice.
+     *
+     * <p>Deliberately does NOT check {@code worldguard.region.bypass.*} (unlike
+     * {@link #isAbilityAllowed}): confirmed directly against WorldGuard's own
+     * {@code RegionProtectionListener} bytecode that it never lets that permission override a PvP
+     * denial either — bypass is for building/interacting in a region, not for ignoring PvP rules.
      */
     boolean isPvpAllowed(Location casterLocation, Location targetLocation, Player caster) {
         RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();

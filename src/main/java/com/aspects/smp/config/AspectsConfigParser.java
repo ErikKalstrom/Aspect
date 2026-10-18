@@ -14,6 +14,18 @@ import java.util.Map;
 
 public final class AspectsConfigParser {
     /**
+     * The version of config.yml that predates this key existing at all -- i.e. what an installation
+     * from before this plugin version must be treated as. This is a fixed historical fact and must
+     * never change, unlike {@link #CURRENT_CONFIG_VERSION}: a missing config-version key means "this
+     * file was written before config-version existed," which is baseline 1 forever, not "whatever
+     * the current plugin version happens to understand." Defaulting a missing key to CURRENT would
+     * make a config.yml from before this feature existed silently look like it's already on the
+     * latest version the moment CURRENT_CONFIG_VERSION is ever bumped past 1, skipping the very
+     * migration that bump would exist to run.
+     */
+    private static final int BASELINE_CONFIG_VERSION = 1;
+
+    /**
      * The config.yml structure version this plugin version understands. Bump this, and add a branch
      * keyed off the stored value, whenever a future change needs to migrate an older config.yml
      * rather than just reading it with a new default — there is nothing to migrate from yet, since
@@ -24,10 +36,15 @@ public final class AspectsConfigParser {
     private AspectsConfigParser() {}
 
     public static GeneralConfig parseGeneral(FileConfiguration yml, List<String> errors) {
-        int configVersion = yml.getInt("config-version", CURRENT_CONFIG_VERSION);
-        if (configVersion > CURRENT_CONFIG_VERSION) {
+        int configVersion = yml.getInt("config-version", BASELINE_CONFIG_VERSION);
+        if (configVersion < 1) {
+            errors.add("config.yml config-version (" + configVersion + ") must be at least 1");
+            configVersion = BASELINE_CONFIG_VERSION;
+        } else if (configVersion > CURRENT_CONFIG_VERSION) {
             errors.add("config.yml config-version (" + configVersion + ") is newer than this plugin " +
-                    "version supports (" + CURRENT_CONFIG_VERSION + ") -- was the plugin downgraded?");
+                    "version supports (" + CURRENT_CONFIG_VERSION + ") -- was the plugin downgraded? " +
+                    "Update the plugin, or set config-version back to " + CURRENT_CONFIG_VERSION +
+                    " only after confirming config.yml has no settings this plugin version doesn't understand.");
         }
         boolean debug = yml.getBoolean("general.debug", false);
         String sqliteFile = yml.getString("storage.sqlite-file", "playerdata.db");

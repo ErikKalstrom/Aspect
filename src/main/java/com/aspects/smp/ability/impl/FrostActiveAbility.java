@@ -45,9 +45,16 @@ public final class FrostActiveAbility implements Ability {
             // observe and cancel. Firing a zero-damage EntityDamageByEntityEvent here -- without
             // ever actually reducing health -- gives those plugins the same chance to participate,
             // per the spec's "apply damage through supported APIs ... that allows protection plugins
-            // to participate."
+            // to participate." Uses MAGIC rather than ENTITY_ATTACK deliberately: a melee-specific
+            // cause risks tripping anti-cheat/combat plugins that scrutinize ENTITY_ATTACK hits for
+            // reach/direction, which a ranged debuff like this has no reason to satisfy. The 4-arg
+            // constructor is deprecated-for-removal in the current Paper API; the only non-deprecated
+            // alternative additionally requires hand-built DamageModifier maps with no well-defined
+            // "this is not real damage" values, so this is kept deliberately, matching how this
+            // constructor is still used throughout the plugin ecosystem.
+            @SuppressWarnings("removal")
             EntityDamageByEntityEvent syntheticHit = new EntityDamageByEntityEvent(
-                    caster, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, 0.0);
+                    caster, target, EntityDamageEvent.DamageCause.MAGIC, 0.0);
             Bukkit.getPluginManager().callEvent(syntheticHit);
             if (syntheticHit.isCancelled()) {
                 continue;

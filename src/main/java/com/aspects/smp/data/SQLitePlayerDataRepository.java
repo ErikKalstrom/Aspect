@@ -20,10 +20,19 @@ import java.util.logging.Logger;
 
 public final class SQLitePlayerDataRepository implements PlayerDataRepository {
     /**
-     * The database schema version this plugin version understands. Bump this, and add a branch
-     * keyed off the stored value in {@link #migrateSchema()}, whenever a future change needs to
-     * transform existing rows rather than just adding a new table/column that defaults cleanly —
-     * there is nothing to migrate from yet, since this is the first versioned schema.
+     * The database schema version this plugin version understands.
+     *
+     * <p><b>Convention — read this before changing table structure:</b> the {@code CREATE TABLE}
+     * statements below are the permanent v1 shape and must never be edited directly to add a column
+     * or change a type. {@code CREATE TABLE IF NOT EXISTS} only runs on a database that doesn't have
+     * that table yet, so editing it silently does nothing on every existing installation's database
+     * — only a brand-new one would ever see the change. Instead, bump this constant and add a branch
+     * in {@link #migrateSchema()} keyed off the stored version (e.g. {@code if (storedVersion < 2) {
+     * statement.execute("ALTER TABLE players ADD COLUMN ..."); }}), which runs for every database
+     * that predates the bump — including both a genuinely fresh database (which starts at version 0,
+     * same as one that predates versioning entirely) and an upgrading one, since there is nothing
+     * meaningfully different between "fresh" and "legacy" once every structural change lives in a
+     * migration step rather than in the base {@code CREATE TABLE} statements.
      */
     static final int CURRENT_SCHEMA_VERSION = 1;
 
@@ -72,9 +81,21 @@ public final class SQLitePlayerDataRepository implements PlayerDataRepository {
         // storedVersion == 0 (fresh database, or one that predates schema versioning) falls straight
         // through here with nothing to actually migrate. Future version bumps add a migration step
         // per version here, e.g.: if (storedVersion < 2) { ...; storedVersion = 2; }
+        //
+        // Run as one transaction: a real future migration step must commit atomically with the
+        // version stamp below, or a crash between them would make the (already-applied) migration
+        // re-run against already-migrated data on the next startup.
+        boolean previousAutoCommit = connection.getAutoCommit();
+        connection.setAutoCommit(false);
         try (Statement statement = connection.createStatement()) {
             statement.execute("DELETE FROM schema_meta");
             statement.executeUpdate("INSERT INTO schema_meta (version) VALUES (" + CURRENT_SCHEMA_VERSION + ")");
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        } finally {
+            connection.setAutoCommit(previousAutoCommit);
         }
     }
 

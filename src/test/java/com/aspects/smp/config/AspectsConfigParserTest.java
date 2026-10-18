@@ -29,14 +29,18 @@ class AspectsConfigParserTest {
     }
 
     @Test
-    void parseGeneral_missingConfigVersion_defaultsToCurrent() {
+    void parseGeneral_missingConfigVersion_defaultsToBaseline_notCurrent() {
+        // A missing config-version key means "written before this key existed," which must always
+        // resolve to the historical baseline (1), never to whatever CURRENT_CONFIG_VERSION happens to
+        // be -- otherwise a pre-existing config.yml would look falsely up to date the moment
+        // CURRENT_CONFIG_VERSION is ever bumped past 1, and skip the migration that bump exists for.
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(""));
         List<String> errors = new ArrayList<>();
 
         GeneralConfig config = AspectsConfigParser.parseGeneral(yml, errors);
 
         assertTrue(errors.isEmpty());
-        assertEquals(AspectsConfigParser.CURRENT_CONFIG_VERSION, config.configVersion());
+        assertEquals(1, config.configVersion());
     }
 
     @Test
@@ -49,6 +53,29 @@ class AspectsConfigParserTest {
 
         assertTrue(errors.stream().anyMatch(e -> e.contains("config-version")));
         assertEquals(AspectsConfigParser.CURRENT_CONFIG_VERSION + 1, config.configVersion());
+    }
+
+    @Test
+    void parseGeneral_configVersionBelowOne_reportsWarningAndFallsBackToBaseline() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader("config-version: 0\n"));
+        List<String> errors = new ArrayList<>();
+
+        GeneralConfig config = AspectsConfigParser.parseGeneral(yml, errors);
+
+        assertTrue(errors.stream().anyMatch(e -> e.contains("config-version")));
+        assertEquals(1, config.configVersion());
+    }
+
+    @Test
+    void parseGeneral_configVersionEqualToCurrent_reportsNoError() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "config-version: " + AspectsConfigParser.CURRENT_CONFIG_VERSION + "\n"));
+        List<String> errors = new ArrayList<>();
+
+        GeneralConfig config = AspectsConfigParser.parseGeneral(yml, errors);
+
+        assertTrue(errors.isEmpty());
+        assertEquals(AspectsConfigParser.CURRENT_CONFIG_VERSION, config.configVersion());
     }
 
     @Test
