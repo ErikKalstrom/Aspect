@@ -2,6 +2,7 @@ package com.aspects.smp.item;
 
 import com.aspects.smp.AspectsPlugin;
 import com.aspects.smp.gui.RerollConfirmationGUI;
+import com.aspects.smp.util.MessageUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -31,6 +32,10 @@ public final class RerollerInteractListener implements Listener {
         }
         event.setCancelled(true);
         Player player = event.getPlayer();
+        if (!player.hasPermission("aspects.use")) {
+            player.sendActionBar(MessageUtil.parse(plugin.getConfigManager().message("ability.no-permission")));
+            return;
+        }
         int handSlot = player.getInventory().getHeldItemSlot();
         new RerollConfirmationGUI(plugin, player, handSlot).open();
     }
