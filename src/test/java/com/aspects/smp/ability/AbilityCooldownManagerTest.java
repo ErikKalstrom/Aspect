@@ -58,13 +58,44 @@ class AbilityCooldownManagerTest {
     }
 
     @Test
-    void clearCache_removesAllCooldownsForPlayer() {
-        AbilityCooldownManager manager = new AbilityCooldownManager(new FakePlayerDataRepository(), () -> 0L);
+    void resetCooldowns_removesFromMemoryAndRepository() {
+        FakePlayerDataRepository repository = new FakePlayerDataRepository();
+        AbilityCooldownManager manager = new AbilityCooldownManager(repository, () -> 0L);
         UUID playerId = UUID.randomUUID();
         manager.startCooldown(playerId, "fire", 100);
 
-        manager.clearCache(playerId);
+        manager.resetCooldowns(playerId);
 
+        assertFalse(manager.isOnCooldown(playerId, "fire"));
+        assertFalse(repository.cooldowns.containsKey(playerId));
+    }
+
+    @Test
+    void clearLocalCache_removesFromMemoryButKeepsRepositoryIntact() {
+        FakePlayerDataRepository repository = new FakePlayerDataRepository();
+        AbilityCooldownManager manager = new AbilityCooldownManager(repository, () -> 0L);
+        UUID playerId = UUID.randomUUID();
+        manager.startCooldown(playerId, "fire", 100);
+
+        manager.clearLocalCache(playerId);
+
+        assertFalse(manager.isOnCooldown(playerId, "fire"));
+        assertEquals(100_000L, repository.cooldowns.get(playerId).get("fire"));
+    }
+
+    @Test
+    void clearLocalCache_thenLoadIntoCache_restoresCooldownUnchanged() {
+        FakePlayerDataRepository repository = new FakePlayerDataRepository();
+        AtomicLong clock = new AtomicLong(0L);
+        AbilityCooldownManager manager = new AbilityCooldownManager(repository, clock::get);
+        UUID playerId = UUID.randomUUID();
+        manager.startCooldown(playerId, "fire", 100);
+
+        manager.clearLocalCache(playerId);
+        manager.loadIntoCache(playerId, repository.cooldowns.get(playerId));
+
+        assertTrue(manager.isOnCooldown(playerId, "fire"));
+        clock.set(100_001L);
         assertFalse(manager.isOnCooldown(playerId, "fire"));
     }
 }

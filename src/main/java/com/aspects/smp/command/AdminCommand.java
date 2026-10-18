@@ -2,7 +2,6 @@ package com.aspects.smp.command;
 
 import com.aspects.smp.AspectsPlugin;
 import com.aspects.smp.aspect.Aspect;
-import com.aspects.smp.config.ConfigValidationException;
 import com.aspects.smp.gui.AdminGUI;
 import com.aspects.smp.item.CustomItemManager;
 import com.aspects.smp.util.MessageUtil;
@@ -13,6 +12,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -268,7 +268,7 @@ public final class AdminCommand {
             sender.sendMessage(MessageUtil.parse("<red>Player '" + args[1] + "' is not online.</red>"));
             return true;
         }
-        plugin.getCooldownManager().clearCache(target.getUniqueId());
+        plugin.getCooldownManager().resetCooldowns(target.getUniqueId());
         sender.sendMessage(MessageUtil.parse("<green>Cleared all ability cooldowns for " + target.getName() + ".</green>"));
         return true;
     }
@@ -278,13 +278,16 @@ public final class AdminCommand {
             sender.sendMessage(MessageUtil.parse("<red>You do not have permission to do that.</red>"));
             return true;
         }
-        try {
-            plugin.getConfigManager().loadAll();
-        } catch (ConfigValidationException e) {
+        List<String> errors = plugin.getConfigManager().tryReload();
+        if (!errors.isEmpty()) {
             sender.sendMessage(MessageUtil.parse("<red>Reload failed — configuration errors:</red>"));
-            for (String error : e.errors()) {
+            for (String error : errors) {
                 sender.sendMessage(MessageUtil.parse("<red> - " + error + "</red>"));
             }
+            sender.sendMessage(MessageUtil.parse("<yellow>The previous configuration is still active. " +
+                    "Note that a value like this may have been tolerated with a safe default at server " +
+                    "startup, but a reload never applies a config with any unresolved error — fix the " +
+                    "issue(s) above and reload again.</yellow>"));
             return true;
         }
         plugin.getRerollerRecipeManager().register(plugin.getConfigManager().recipes());

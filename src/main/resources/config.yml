@@ -1,4 +1,10 @@
 # Aspects plugin — general settings.
+#
+# config-version identifies the structure of this file, not the plugin version. It lets a future
+# plugin update detect and migrate an older config.yml automatically instead of silently
+# misreading it. Do not edit this value by hand.
+config-version: 1
+
 general:
   debug: false
 

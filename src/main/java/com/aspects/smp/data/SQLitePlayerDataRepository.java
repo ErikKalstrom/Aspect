@@ -19,6 +19,23 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public final class SQLitePlayerDataRepository implements PlayerDataRepository {
+    /**
+     * The database schema version this plugin version understands.
+     *
+     * <p><b>Convention — read this before changing table structure:</b> the {@code CREATE TABLE}
+     * statements below are the permanent v1 shape and must never be edited directly to add a column
+     * or change a type. {@code CREATE TABLE IF NOT EXISTS} only runs on a database that doesn't have
+     * that table yet, so editing it silently does nothing on every existing installation's database
+     * — only a brand-new one would ever see the change. Instead, bump this constant and add a branch
+     * in {@link #migrateSchema()} keyed off the stored version (e.g. {@code if (storedVersion < 2) {
+     * statement.execute("ALTER TABLE players ADD COLUMN ..."); }}), which runs for every database
+     * that predates the bump — including both a genuinely fresh database (which starts at version 0,
+     * same as one that predates versioning entirely) and an upgrading one, since there is nothing
+     * meaningfully different between "fresh" and "legacy" once every structural change lives in a
+     * migration step rather than in the base {@code CREATE TABLE} statements.
+     */
+    static final int CURRENT_SCHEMA_VERSION = 1;
+
     private final Connection connection;
     private final ExecutorService executor;
     private final Logger logger;
@@ -38,9 +55,47 @@ public final class SQLitePlayerDataRepository implements PlayerDataRepository {
                 statement.execute("CREATE TABLE IF NOT EXISTS cooldowns (" +
                         "uuid TEXT NOT NULL, ability_id TEXT NOT NULL, expires_at INTEGER NOT NULL, " +
                         "PRIMARY KEY (uuid, ability_id))");
+                statement.execute("CREATE TABLE IF NOT EXISTS schema_meta (version INTEGER NOT NULL)");
             }
+            migrateSchema();
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to open SQLite database at " + databaseFile, e);
+        }
+    }
+
+    private void migrateSchema() throws SQLException {
+        int storedVersion;
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery("SELECT version FROM schema_meta LIMIT 1")) {
+            storedVersion = rs.next() ? rs.getInt("version") : 0;
+        }
+        if (storedVersion > CURRENT_SCHEMA_VERSION) {
+            logger.warning("Player data schema version (" + storedVersion + ") is newer than this " +
+                    "plugin version supports (" + CURRENT_SCHEMA_VERSION + ") -- was the plugin " +
+                    "downgraded? Proceeding without migration; this may cause issues.");
+            return;
+        }
+        if (storedVersion == CURRENT_SCHEMA_VERSION) {
+            return;
+        }
+        // storedVersion == 0 (fresh database, or one that predates schema versioning) falls straight
+        // through here with nothing to actually migrate. Future version bumps add a migration step
+        // per version here, e.g.: if (storedVersion < 2) { ...; storedVersion = 2; }
+        //
+        // Run as one transaction: a real future migration step must commit atomically with the
+        // version stamp below, or a crash between them would make the (already-applied) migration
+        // re-run against already-migrated data on the next startup.
+        boolean previousAutoCommit = connection.getAutoCommit();
+        connection.setAutoCommit(false);
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("DELETE FROM schema_meta");
+            statement.executeUpdate("INSERT INTO schema_meta (version) VALUES (" + CURRENT_SCHEMA_VERSION + ")");
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        } finally {
+            connection.setAutoCommit(previousAutoCommit);
         }
     }
 

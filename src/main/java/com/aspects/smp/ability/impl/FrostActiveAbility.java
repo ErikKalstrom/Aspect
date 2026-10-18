@@ -5,8 +5,11 @@ import com.aspects.smp.ability.AbilityContext;
 import com.aspects.smp.aspect.AspectDefinition;
 import com.aspects.smp.util.ParticleUtil;
 import com.aspects.smp.util.SoundUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -32,6 +35,28 @@ public final class FrostActiveAbility implements Ability {
                 continue;
             }
             if (target.getLocation().distance(caster.getLocation()) > radius) {
+                continue;
+            }
+            if (!context.plugin().getProtectionGate().canTargetPlayer(caster, target)) {
+                continue;
+            }
+            // Frost Nova applies its debuffs directly rather than through LivingEntity#damage(...),
+            // so unlike Fire it never goes through an event a third-party protection plugin could
+            // observe and cancel. Firing a zero-damage EntityDamageByEntityEvent here -- without
+            // ever actually reducing health -- gives those plugins the same chance to participate,
+            // per the spec's "apply damage through supported APIs ... that allows protection plugins
+            // to participate." Uses MAGIC rather than ENTITY_ATTACK deliberately: a melee-specific
+            // cause risks tripping anti-cheat/combat plugins that scrutinize ENTITY_ATTACK hits for
+            // reach/direction, which a ranged debuff like this has no reason to satisfy. The 4-arg
+            // constructor is deprecated-for-removal in the current Paper API; the only non-deprecated
+            // alternative additionally requires hand-built DamageModifier maps with no well-defined
+            // "this is not real damage" values, so this is kept deliberately, matching how this
+            // constructor is still used throughout the plugin ecosystem.
+            @SuppressWarnings("removal")
+            EntityDamageByEntityEvent syntheticHit = new EntityDamageByEntityEvent(
+                    caster, target, EntityDamageEvent.DamageCause.MAGIC, 0.0);
+            Bukkit.getPluginManager().callEvent(syntheticHit);
+            if (syntheticHit.isCancelled()) {
                 continue;
             }
             target.addPotionEffect(new PotionEffect(

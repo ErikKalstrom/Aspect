@@ -41,6 +41,11 @@ public final class PlayerJoinListener implements Listener {
                 Map.of("aspect", aspect.definition().displayName()));
         MessageUtil.sendMessage(player, plugin.getConfigManager().message("first-join.line3"),
                 Map.of("rarity", aspect.definition().rarity().name()));
+        MessageUtil.sendMessage(player, plugin.getConfigManager().message("first-join.line4"),
+                Map.of("passive", aspect.definition().passiveName()));
+        MessageUtil.sendMessage(player, plugin.getConfigManager().message("first-join.line5"),
+                Map.of("active", aspect.definition().activeName()));
+        MessageUtil.sendMessage(player, plugin.getConfigManager().message("first-join.hint"));
         SoundUtil.play(player, general.firstJoinSound(), 1.0f, 1.0f, plugin.getLogger());
         ParticleUtil.spawn(player.getLocation(), general.firstJoinParticle(),
                 general.firstJoinParticleCount(), plugin.getLogger());

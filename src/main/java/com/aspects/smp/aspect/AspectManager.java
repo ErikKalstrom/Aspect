@@ -110,7 +110,7 @@ public final class AspectManager {
         if (aspect != null) {
             aspect.passive().onUnequip(player);
         }
-        cooldownManager.clearCache(player.getUniqueId());
+        cooldownManager.clearLocalCache(player.getUniqueId());
         temporaryEffectManager.clear(player.getUniqueId());
     }
 
@@ -125,7 +125,7 @@ public final class AspectManager {
         }
         assigned.put(player.getUniqueId(), aspect);
         repository.savePlayer(new PlayerAspectData(player.getUniqueId(), aspect.id(), System.currentTimeMillis()));
-        cooldownManager.clearCache(player.getUniqueId());
+        cooldownManager.resetCooldowns(player.getUniqueId());
         temporaryEffectManager.clear(player.getUniqueId());
         aspect.passive().onEquip(player, aspect.definition());
         return Optional.of(aspect);
@@ -148,7 +148,7 @@ public final class AspectManager {
             previous.passive().onUnequip(player);
         }
         repository.deletePlayer(player.getUniqueId());
-        cooldownManager.clearCache(player.getUniqueId());
+        cooldownManager.resetCooldowns(player.getUniqueId());
         temporaryEffectManager.clear(player.getUniqueId());
         return Optional.empty();
     }
@@ -170,7 +170,7 @@ public final class AspectManager {
         Aspect aspect = picked.get();
         assigned.put(player.getUniqueId(), aspect);
         repository.savePlayer(new PlayerAspectData(player.getUniqueId(), aspect.id(), System.currentTimeMillis()));
-        cooldownManager.clearCache(player.getUniqueId());
+        cooldownManager.resetCooldowns(player.getUniqueId());
         temporaryEffectManager.clear(player.getUniqueId());
         aspect.passive().onEquip(player, aspect.definition());
         return Optional.of(aspect);

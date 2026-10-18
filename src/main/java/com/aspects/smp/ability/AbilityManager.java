@@ -23,6 +23,9 @@ public final class AbilityManager {
     }
 
     public ActivationResult tryActivate(Player player) {
+        if (!player.hasPermission("aspects.use")) {
+            return ActivationResult.failed("ability.no-permission");
+        }
         if (player.isDead() || player.getGameMode() == GameMode.SPECTATOR) {
             return ActivationResult.failed("ability.unavailable");
         }

@@ -6,15 +6,46 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 public final class AspectsConfigParser {
+    /**
+     * The version of config.yml that predates this key existing at all -- i.e. what an installation
+     * from before this plugin version must be treated as. This is a fixed historical fact and must
+     * never change, unlike {@link #CURRENT_CONFIG_VERSION}: a missing config-version key means "this
+     * file was written before config-version existed," which is baseline 1 forever, not "whatever
+     * the current plugin version happens to understand." Defaulting a missing key to CURRENT would
+     * make a config.yml from before this feature existed silently look like it's already on the
+     * latest version the moment CURRENT_CONFIG_VERSION is ever bumped past 1, skipping the very
+     * migration that bump would exist to run.
+     */
+    private static final int BASELINE_CONFIG_VERSION = 1;
+
+    /**
+     * The config.yml structure version this plugin version understands. Bump this, and add a branch
+     * keyed off the stored value, whenever a future change needs to migrate an older config.yml
+     * rather than just reading it with a new default — there is nothing to migrate from yet, since
+     * this is the first versioned config.
+     */
+    public static final int CURRENT_CONFIG_VERSION = 1;
+
     private AspectsConfigParser() {}
 
     public static GeneralConfig parseGeneral(FileConfiguration yml, List<String> errors) {
+        int configVersion = yml.getInt("config-version", BASELINE_CONFIG_VERSION);
+        if (configVersion < 1) {
+            errors.add("config.yml config-version (" + configVersion + ") must be at least 1");
+            configVersion = BASELINE_CONFIG_VERSION;
+        } else if (configVersion > CURRENT_CONFIG_VERSION) {
+            errors.add("config.yml config-version (" + configVersion + ") is newer than this plugin " +
+                    "version supports (" + CURRENT_CONFIG_VERSION + ") -- was the plugin downgraded? " +
+                    "Update the plugin, or set config-version back to " + CURRENT_CONFIG_VERSION +
+                    " only after confirming config.yml has no settings this plugin version doesn't understand.");
+        }
         boolean debug = yml.getBoolean("general.debug", false);
         String sqliteFile = yml.getString("storage.sqlite-file", "playerdata.db");
         boolean firstJoinEnabled = yml.getBoolean("first-join.enabled", true);
@@ -28,14 +59,15 @@ public final class AspectsConfigParser {
         boolean respectWorldGuard = yml.getBoolean("world-restrictions.respect-worldguard", true);
 
         if (sqliteFile == null || sqliteFile.isBlank()) {
-            errors.add("storage.sqlite-file must not be blank");
+            errors.add("config.yml storage.sqlite-file must not be blank");
             sqliteFile = "playerdata.db";
         }
         if (firstJoinParticleCount < 0) {
-            errors.add("first-join.particle-count must not be negative");
+            errors.add("config.yml first-join.particle-count must not be negative");
+            firstJoinParticleCount = 20;
         }
 
-        return new GeneralConfig(debug, sqliteFile, firstJoinEnabled, firstJoinSound,
+        return new GeneralConfig(configVersion, debug, sqliteFile, firstJoinEnabled, firstJoinSound,
                 firstJoinParticle, firstJoinParticleCount, blockedWorlds, excludeCurrentOnReroll,
                 revealAnimationEnabled, resetImmediateReassign, respectWorldGuard);
     }
@@ -64,19 +96,19 @@ public final class AspectsConfigParser {
             try {
                 rarity = AspectRarity.valueOf(rarityRaw.toUpperCase(Locale.ROOT));
             } catch (IllegalArgumentException e) {
-                errors.add("aspects." + id + ".rarity has unknown value '" + rarityRaw + "'");
+                errors.add("aspects.yml aspects." + id + ".rarity has unknown value '" + rarityRaw + "'");
                 rarity = AspectRarity.COMMON;
             }
             if (weight < 0) {
-                errors.add("aspects." + id + ".weight must not be negative");
+                errors.add("aspects.yml aspects." + id + ".weight must not be negative");
                 weight = 0;
             }
             Material icon = Material.matchMaterial(iconRaw);
             if (icon == null) {
-                errors.add("aspects." + id + ".icon has unknown material '" + iconRaw + "'");
+                errors.add("aspects.yml aspects." + id + ".icon has unknown material '" + iconRaw + "'");
                 icon = Material.STONE;
             } else if (icon.name().equals("AIR") || icon.name().endsWith("_AIR")) {
-                errors.add("aspects." + id + ".icon must not be an air material (" + iconRaw + ") — icons must be displayable items");
+                errors.add("aspects.yml aspects." + id + ".icon must not be an air material (" + iconRaw + ") — icons must be displayable items");
                 icon = Material.STONE;
             }
 
@@ -88,58 +120,66 @@ public final class AspectsConfigParser {
 
     public static RecipesConfig parseRecipes(FileConfiguration yml, List<String> errors) {
         boolean enabled = yml.getBoolean("reroller.enabled", true);
-        List<String> pattern = yml.getStringList("reroller.pattern");
         int resultAmount = yml.getInt("reroller.result-amount", 1);
 
+        List<String> pattern = yml.getStringList("reroller.pattern");
+        Map<Character, Material> ingredients = new LinkedHashMap<>();
+        List<String> recipeErrors = new ArrayList<>();
+
+        boolean patternValid = pattern.size() == 3 && pattern.stream().allMatch(row -> row.length() == 3);
         if (pattern.size() != 3) {
-            errors.add("recipes.yml reroller.pattern must have exactly 3 rows");
-            pattern = List.of("ADA", "DND", "ADA");
-        } else {
-            for (String row : pattern) {
-                if (row.length() != 3) {
-                    errors.add("recipes.yml reroller.pattern rows must each be exactly 3 characters");
-                    break;
-                }
-            }
+            recipeErrors.add("recipes.yml reroller.pattern must have exactly 3 rows");
+        } else if (!patternValid) {
+            recipeErrors.add("recipes.yml reroller.pattern rows must each be exactly 3 characters");
         }
 
-        Map<Character, Material> ingredients = new LinkedHashMap<>();
         ConfigurationSection ingredientsSection = yml.getConfigurationSection("reroller.ingredients");
         if (ingredientsSection == null) {
-            errors.add("recipes.yml is missing the 'reroller.ingredients' section");
+            recipeErrors.add("recipes.yml is missing the 'reroller.ingredients' section");
         } else {
             for (String key : ingredientsSection.getKeys(false)) {
                 if (key.length() != 1) {
-                    errors.add("recipes.yml reroller.ingredients key '" + key + "' must be a single character");
+                    recipeErrors.add("recipes.yml reroller.ingredients key '" + key + "' must be a single character");
                     continue;
                 }
                 if (key.equals(" ")) {
-                    errors.add("recipes.yml reroller.ingredients must not use a space as a key (space means an empty pattern slot)");
+                    recipeErrors.add("recipes.yml reroller.ingredients must not use a space as a key (space means an empty pattern slot)");
                     continue;
                 }
                 String materialName = ingredientsSection.getString(key);
                 Material material = materialName == null ? null : Material.matchMaterial(materialName);
                 if (material == null) {
-                    errors.add("recipes.yml reroller.ingredients." + key + " has unknown material '" + materialName + "'");
+                    recipeErrors.add("recipes.yml reroller.ingredients." + key + " has unknown material '" + materialName + "'");
                     continue;
                 }
                 ingredients.put(key.charAt(0), material);
             }
+        }
 
+        if (patternValid && ingredientsSection != null) {
             for (String row : pattern) {
                 for (char c : row.toCharArray()) {
                     if (c != ' ' && !ingredients.containsKey(c)) {
-                        errors.add("recipes.yml reroller.pattern uses character '" + c + "' with no matching ingredient");
+                        recipeErrors.add("recipes.yml reroller.pattern uses character '" + c + "' with no matching ingredient");
                     }
                 }
             }
-
             for (Character ingredientKey : ingredients.keySet()) {
                 boolean used = pattern.stream().anyMatch(row -> row.indexOf(ingredientKey) >= 0);
                 if (!used) {
-                    errors.add("recipes.yml reroller.ingredients key '" + ingredientKey + "' is not used anywhere in the pattern");
+                    recipeErrors.add("recipes.yml reroller.ingredients key '" + ingredientKey + "' is not used anywhere in the pattern");
                 }
             }
+        }
+
+        // Any recipe-related problem falls back to the WHOLE shipped default recipe (pattern and
+        // ingredients together), never a mix of valid and broken pieces -- a pattern fixed up on its
+        // own but paired with the server's own (unrelated) custom ingredients, or vice versa, could
+        // still leave unmatched characters and fail to register at all.
+        if (!recipeErrors.isEmpty()) {
+            errors.addAll(recipeErrors);
+            pattern = List.of("ADA", "DND", "ADA");
+            ingredients = defaultIngredients();
         }
 
         if (resultAmount < 1) {
@@ -148,5 +188,13 @@ public final class AspectsConfigParser {
         }
 
         return new RecipesConfig(enabled, pattern, ingredients, resultAmount);
+    }
+
+    private static Map<Character, Material> defaultIngredients() {
+        Map<Character, Material> defaults = new LinkedHashMap<>();
+        defaults.put('A', Material.AMETHYST_SHARD);
+        defaults.put('D', Material.DIAMOND);
+        defaults.put('N', Material.NETHER_STAR);
+        return defaults;
     }
 }

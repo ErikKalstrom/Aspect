@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -103,6 +106,89 @@ class SQLitePlayerDataRepositoryTest {
         Optional<PlayerAspectData> loaded = repo.loadPlayer(playerId).get();
 
         assertTrue(loaded.isEmpty());
+        repo.close();
+    }
+
+    @Test
+    void freshDatabase_recordsCurrentSchemaVersion() throws Exception {
+        File dbFile = File.createTempFile("aspects-test", ".db");
+        dbFile.deleteOnExit();
+        SQLitePlayerDataRepository repo = new SQLitePlayerDataRepository(dbFile, Logger.getLogger("AspectsTest"));
+
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery("SELECT version FROM schema_meta")) {
+            assertTrue(rs.next());
+            assertEquals(SQLitePlayerDataRepository.CURRENT_SCHEMA_VERSION, rs.getInt("version"));
+            assertEquals(false, rs.next(), "there must be exactly one schema_meta row");
+        }
+        repo.close();
+    }
+
+    @Test
+    void reopeningExistingDatabase_doesNotDuplicateSchemaVersionRow() throws Exception {
+        File dbFile = File.createTempFile("aspects-test", ".db");
+        dbFile.deleteOnExit();
+        new SQLitePlayerDataRepository(dbFile, Logger.getLogger("AspectsTest")).close();
+
+        SQLitePlayerDataRepository repo = new SQLitePlayerDataRepository(dbFile, Logger.getLogger("AspectsTest"));
+
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery("SELECT COUNT(*) AS count FROM schema_meta")) {
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt("count"));
+        }
+        repo.close();
+    }
+
+    @Test
+    void storedSchemaVersionNewerThanSupported_doesNotThrowAndLeavesVersionUnchanged() throws Exception {
+        File dbFile = File.createTempFile("aspects-test", ".db");
+        dbFile.deleteOnExit();
+        int futureVersion = SQLitePlayerDataRepository.CURRENT_SCHEMA_VERSION + 98;
+        new SQLitePlayerDataRepository(dbFile, Logger.getLogger("AspectsTest")).close();
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
+             Statement statement = connection.createStatement()) {
+            statement.execute("UPDATE schema_meta SET version = " + futureVersion);
+        }
+
+        // Simulates a downgrade: the stored version is newer than this plugin build understands.
+        // Must not throw -- this plugin's config/schema loading never crashes on an unexpected value.
+        SQLitePlayerDataRepository repo = new SQLitePlayerDataRepository(dbFile, Logger.getLogger("AspectsTest"));
+
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery("SELECT version FROM schema_meta")) {
+            assertTrue(rs.next());
+            assertEquals(futureVersion, rs.getInt("version"), "a newer stored version must be left untouched");
+        }
+        repo.close();
+    }
+
+    @Test
+    void legacyDatabaseMissingSchemaMeta_isTreatedLikeAFreshDatabase() throws Exception {
+        // A database created before schema versioning existed has the players/cooldowns tables but no
+        // schema_meta row at all -- by this class's documented convention (see CURRENT_SCHEMA_VERSION's
+        // javadoc), that must be handled identically to a genuinely fresh database: stamped at the
+        // current version, since every real structural difference belongs in a migration step, not in
+        // the base CREATE TABLE statements.
+        File dbFile = File.createTempFile("aspects-test", ".db");
+        dbFile.deleteOnExit();
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
+             Statement statement = connection.createStatement()) {
+            statement.execute("CREATE TABLE players (" +
+                    "uuid TEXT PRIMARY KEY, aspect_id TEXT NOT NULL, assigned_at INTEGER NOT NULL)");
+        }
+
+        SQLitePlayerDataRepository repo = new SQLitePlayerDataRepository(dbFile, Logger.getLogger("AspectsTest"));
+
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery("SELECT version FROM schema_meta")) {
+            assertTrue(rs.next());
+            assertEquals(SQLitePlayerDataRepository.CURRENT_SCHEMA_VERSION, rs.getInt("version"));
+        }
         repo.close();
     }
 }

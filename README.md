@@ -39,15 +39,20 @@ server's `plugins/` folder.
 | Aspect  | Rarity    | Theme                                           |
 |---------|-----------|--------------------------------------------------|
 | Wind    | Common    | Agility, jumping, and aerial movement            |
-| Frost   | Common    | Slowing and controlling opponents                |
+| Tide    | Common    | Water, regeneration, and endurance               |
 | Fire    | Rare      | Aggressive damage and burning enemies            |
-| Tide    | Rare      | Water, regeneration, and endurance               |
+| Frost   | Rare      | Slowing and controlling opponents                |
 | Earth   | Rare      | Defense, stability, and holding ground           |
 | Thunder | Epic      | Speed, mobility, and explosive engagement        |
 | Blood   | Epic      | Sacrifice, aggression, and overwhelming melee power |
 | Void    | Legendary | Teleportation, deception, and positioning        |
 
-New players are assigned a random enabled Aspect (weighted by rarity) on first join.
+New players are assigned a random enabled Aspect on first join, weighted by each
+Aspect's own `weight` value in `aspects.yml` (rarity is a display label, not a separate
+multiplier — the shipped weights are chosen so the aggregate chance per rarity tier
+approximates Common 53% / Rare 27% / Epic 13% / Legendary 7%). Since Void is the only
+Legendary Aspect, it individually appears exactly as often as any single Epic Aspect
+(Thunder or Blood) — the "rarest tier" distinction only shows up in the aggregate.
 Every exact number (cooldowns, damage, percentages, weights) lives in `aspects.yml` and
 can be retuned without touching code; any Aspect can also be disabled entirely.
 

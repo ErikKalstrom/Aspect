@@ -3,6 +3,7 @@ package com.aspects.smp.config;
 import java.util.List;
 
 public record GeneralConfig(
+        int configVersion,
         boolean debug,
         String sqliteFile,
         boolean firstJoinEnabled,

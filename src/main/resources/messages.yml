@@ -4,8 +4,12 @@ first-join:
   line1: "<white>YOUR ASPECT HAS AWAKENED</white>"
   line2: "<gray>Aspect:</gray> {aspect}"
   line3: "<gray>Rarity:</gray> {rarity}"
+  line4: "<gray>Passive:</gray> {passive}"
+  line5: "<gray>Active:</gray> {active}"
+  hint: "<gray>Run</gray> <aqua>/aspects</aqua> <gray>to see more.</gray>"
 
 ability:
+  no-permission: "<red>You do not have permission to use abilities.</red>"
   no-aspect: "<red>You do not have an Aspect assigned yet.</red>"
   aspect-disabled: "<red>Your Aspect is currently disabled on this server.</red>"
   world-blocked: "<red>Abilities cannot be used in this world.</red>"
