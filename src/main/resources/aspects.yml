@@ -3,6 +3,15 @@
 #
 # All eight Aspects — fire, tide, frost, wind, earth, thunder, void, and
 # blood — are implemented as of Phase 2 Batch B2b. Phase 2 is complete.
+#
+# `weight` is each Aspect's own relative selection weight; rarity is a display
+# label only and plays no separate role in selection. These defaults are
+# chosen so the *aggregate* chance of landing on each rarity tier approximates
+# the product spec's suggested Common/Uncommon/Rare/Epic/Legendary split of
+# 40/25/20/10/5% — renormalized across the four tiers actually used (none of
+# the eight default Aspects is Uncommon), giving target shares of roughly
+# 53/27/13/7% for Common/Rare/Epic/Legendary. Changing an Aspect's rarity
+# label does NOT change its odds by itself — update its weight to match.
 aspects:
   fire:
     enabled: true
@@ -29,7 +38,7 @@ aspects:
     display-name: "<aqua>Tide</aqua>"
     description: "Water, regeneration, and endurance."
     rarity: COMMON
-    weight: 40
+    weight: 60
     icon: HEART_OF_THE_SEA
     passive:
       name: "Ocean's Blessing"
@@ -67,7 +76,7 @@ aspects:
     display-name: "<yellow>Thunder</yellow>"
     description: "Speed, mobility, and explosive engagement."
     rarity: EPIC
-    weight: 10
+    weight: 15
     icon: TRIDENT
     passive:
       name: "Charged"
@@ -87,7 +96,7 @@ aspects:
     display-name: "<dark_purple>Void</dark_purple>"
     description: "Teleportation, deception, and positioning."
     rarity: LEGENDARY
-    weight: 5
+    weight: 15
     icon: ENDER_PEARL
     passive:
       name: "Voidborn"
@@ -123,7 +132,7 @@ aspects:
     display-name: "<white>Wind</white>"
     description: "Agility, jumping, and aerial movement."
     rarity: COMMON
-    weight: 40
+    weight: 60
     icon: FEATHER
     passive:
       name: "Lightfoot"
@@ -141,7 +150,7 @@ aspects:
     display-name: "<dark_red>Blood</dark_red>"
     description: "Sacrifice, aggression, and overwhelming melee power."
     rarity: EPIC
-    weight: 10
+    weight: 15
     icon: REDSTONE
     passive:
       name: "Bloodlust"
