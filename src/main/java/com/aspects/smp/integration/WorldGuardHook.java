@@ -5,6 +5,7 @@ import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.Flag;
+import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
 import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
@@ -36,6 +37,16 @@ final class WorldGuardHook {
         RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
         LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(player);
         return query.testState(BukkitAdapter.adapt(location), localPlayer, abilitiesFlag);
+    }
+
+    /**
+     * Checks WorldGuard's own built-in {@code PVP} flag at a location — independent of the
+     * {@code aspects-abilities} flag above, which only gates ability activation, not combat itself.
+     */
+    boolean isPvpAllowed(Location location, Player actor) {
+        RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
+        LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(actor);
+        return query.testState(BukkitAdapter.adapt(location), localPlayer, Flags.PVP);
     }
 
     private void registerFlag(Plugin plugin) {

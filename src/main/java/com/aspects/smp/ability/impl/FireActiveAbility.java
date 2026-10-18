@@ -39,8 +39,14 @@ public final class FireActiveAbility implements Ability {
                 if (target.getLocation().distance(origin) > radius) {
                     continue;
                 }
+                if (!context.plugin().getProtectionGate().canTargetPlayer(caster, target)) {
+                    continue;
+                }
+                double healthBefore = target.getHealth();
                 target.damage(damage, caster);
-                target.setFireTicks(Math.max(target.getFireTicks(), burnTicks));
+                if (target.getHealth() < healthBefore) {
+                    target.setFireTicks(Math.max(target.getFireTicks(), burnTicks));
+                }
             }
             SoundUtil.play(caster, "entity.generic.explode", 1.0f, 1.0f, context.plugin().getLogger());
             ParticleUtil.spawn(origin, "LAVA", 25, context.plugin().getLogger());

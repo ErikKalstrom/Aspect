@@ -268,7 +268,7 @@ public final class AdminCommand {
             sender.sendMessage(MessageUtil.parse("<red>Player '" + args[1] + "' is not online.</red>"));
             return true;
         }
-        plugin.getCooldownManager().clearCache(target.getUniqueId());
+        plugin.getCooldownManager().resetCooldowns(target.getUniqueId());
         sender.sendMessage(MessageUtil.parse("<green>Cleared all ability cooldowns for " + target.getName() + ".</green>"));
         return true;
     }

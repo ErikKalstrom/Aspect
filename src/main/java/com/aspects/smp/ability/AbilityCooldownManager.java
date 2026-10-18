@@ -28,7 +28,20 @@ public final class AbilityCooldownManager {
         }
     }
 
-    public void clearCache(UUID playerId) {
+    /**
+     * Drops the in-memory cooldown cache for a player without touching persisted state.
+     * Use this when a player goes offline (quit, server shutdown) — cooldowns must survive
+     * to be reloaded via {@link #loadIntoCache} on their next join, not be erased.
+     */
+    public void clearLocalCache(UUID playerId) {
+        expiryByPlayer.remove(playerId);
+    }
+
+    /**
+     * Wipes a player's cooldowns everywhere (memory and persisted storage). Use this only for
+     * an intentional full reset — admin "clear cooldown", or assigning a new Aspect.
+     */
+    public void resetCooldowns(UUID playerId) {
         expiryByPlayer.remove(playerId);
         repository.deleteCooldowns(playerId);
     }

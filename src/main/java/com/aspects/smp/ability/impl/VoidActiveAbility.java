@@ -12,9 +12,20 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.function.IntPredicate;
 
 public final class VoidActiveAbility implements Ability {
+    /** Blocks that are either not solid but still dangerous to stand in, or solid but still hazardous underfoot. */
+    private static final Set<Material> HAZARD_MATERIALS = EnumSet.of(
+            Material.LAVA, Material.FIRE, Material.SOUL_FIRE, Material.MAGMA_BLOCK,
+            Material.POWDER_SNOW, Material.COBWEB);
+
+    /** Sub-block sampling resolution along the path, so a diagonal cast can't clip through a block corner
+     * that falls between two whole-block lattice points. */
+    private static final double PATH_SAMPLE_STEP = 0.25;
+
     @Override
     public boolean activate(AbilityContext context) {
         Player player = context.player();
@@ -68,13 +79,22 @@ public final class VoidActiveAbility implements Ability {
     }
 
     private boolean isPathClearAtDistance(World world, Location origin, Vector horizontal, int distance) {
+        for (double step = distance - 1 + PATH_SAMPLE_STEP; step < distance + 1e-9; step += PATH_SAMPLE_STEP) {
+            if (!isPointClear(world, origin, horizontal, step)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isPointClear(World world, Location origin, Vector horizontal, double distance) {
         Location point = origin.clone().add(horizontal.clone().multiply(distance));
         int y = point.getBlockY();
         int bx = point.getBlockX();
         int bz = point.getBlockZ();
         Material feet = world.getBlockAt(bx, y, bz).getType();
         Material head = world.getBlockAt(bx, y + 1, bz).getType();
-        return !feet.isSolid() && !head.isSolid();
+        return !feet.isSolid() && !head.isSolid() && !HAZARD_MATERIALS.contains(feet) && !HAZARD_MATERIALS.contains(head);
     }
 
     private boolean isValidLandingAtDistance(AbilityContext context, World world, Location origin, Vector horizontal, int distance) {
@@ -91,7 +111,12 @@ public final class VoidActiveAbility implements Ability {
         Material feet = world.getBlockAt(bx, y, bz).getType();
         Material head = world.getBlockAt(bx, y + 1, bz).getType();
         Material floor = world.getBlockAt(bx, y - 1, bz).getType();
-        if (feet.isSolid() || head.isSolid() || feet == Material.LAVA || head == Material.LAVA || floor == Material.LAVA) {
+        if (feet.isSolid() || head.isSolid() || HAZARD_MATERIALS.contains(feet) || HAZARD_MATERIALS.contains(head)) {
+            return false;
+        }
+        // Require real solid ground to land on -- otherwise the destination is open air, a cliff edge,
+        // or the void itself, none of which the spec allows ("never teleport into ... the void").
+        if (!floor.isSolid() || HAZARD_MATERIALS.contains(floor)) {
             return false;
         }
         return context.plugin().getProtectionGate().isLocationAllowed(point, context.player());

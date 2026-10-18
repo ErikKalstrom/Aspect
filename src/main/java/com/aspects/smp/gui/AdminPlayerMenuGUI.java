@@ -167,7 +167,7 @@ public final class AdminPlayerMenuGUI implements AspectsGuiHolder {
             viewer.sendMessage(MessageUtil.parse(plugin.getConfigManager().message("gui.admin-player.player-offline")));
             return;
         }
-        plugin.getCooldownManager().clearCache(targetId);
+        plugin.getCooldownManager().resetCooldowns(targetId);
         viewer.sendMessage(MessageUtil.parse("<green>Cleared all ability cooldowns for " + targetName + ".</green>"));
     }
 }

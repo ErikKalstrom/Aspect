@@ -35,4 +35,19 @@ public final class ProtectionGate {
     public boolean isLocationAllowed(Location location, Player player) {
         return !respectWorldGuard || worldGuardIntegration.isAbilityAllowed(location, player);
     }
+
+    /**
+     * Checks whether {@code caster} may deal offensive-ability damage or debuffs to {@code target}:
+     * the target's world must have PvP enabled, and (if WorldGuard is respected) its own built-in
+     * PVP flag must allow it at the target's location. Independent of {@link #isLocationAllowed},
+     * which only gates whether the custom aspects-abilities flag permits activating the ability at
+     * all — an ability can be allowed to activate but still not be allowed to hit a given target.
+     */
+    @SuppressWarnings("deprecation") // World#getPVP() has no non-deprecated replacement in the Paper API
+    public boolean canTargetPlayer(Player caster, Player target) {
+        if (!target.getWorld().getPVP()) {
+            return false;
+        }
+        return !respectWorldGuard || worldGuardIntegration.isPvpAllowed(target.getLocation(), caster);
+    }
 }

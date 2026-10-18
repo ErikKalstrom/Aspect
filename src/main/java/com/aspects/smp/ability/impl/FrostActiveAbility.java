@@ -34,6 +34,9 @@ public final class FrostActiveAbility implements Ability {
             if (target.getLocation().distance(caster.getLocation()) > radius) {
                 continue;
             }
+            if (!context.plugin().getProtectionGate().canTargetPlayer(caster, target)) {
+                continue;
+            }
             target.addPotionEffect(new PotionEffect(
                     PotionEffectType.SLOWNESS, slownessDuration, slownessAmplifier, true, true, true));
             if (miningFatigueEnabled) {

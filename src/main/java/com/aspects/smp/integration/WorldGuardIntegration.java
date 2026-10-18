@@ -24,4 +24,11 @@ public final class WorldGuardIntegration {
         }
         return hook.isAbilityAllowed(location, player);
     }
+
+    public boolean isPvpAllowed(Location location, Player actor) {
+        if (!present || hook == null) {
+            return true;
+        }
+        return hook.isPvpAllowed(location, actor);
+    }
 }
