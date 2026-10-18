@@ -29,6 +29,29 @@ class AspectsConfigParserTest {
     }
 
     @Test
+    void parseGeneral_missingConfigVersion_defaultsToCurrent() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(""));
+        List<String> errors = new ArrayList<>();
+
+        GeneralConfig config = AspectsConfigParser.parseGeneral(yml, errors);
+
+        assertTrue(errors.isEmpty());
+        assertEquals(AspectsConfigParser.CURRENT_CONFIG_VERSION, config.configVersion());
+    }
+
+    @Test
+    void parseGeneral_newerConfigVersionThanSupported_reportsWarningButDoesNotCrash() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "config-version: " + (AspectsConfigParser.CURRENT_CONFIG_VERSION + 1) + "\n"));
+        List<String> errors = new ArrayList<>();
+
+        GeneralConfig config = AspectsConfigParser.parseGeneral(yml, errors);
+
+        assertTrue(errors.stream().anyMatch(e -> e.contains("config-version")));
+        assertEquals(AspectsConfigParser.CURRENT_CONFIG_VERSION + 1, config.configVersion());
+    }
+
+    @Test
     void parseGeneral_rejectsNegativeParticleCount() {
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
                 "first-join:\n  particle-count: -5\n"));

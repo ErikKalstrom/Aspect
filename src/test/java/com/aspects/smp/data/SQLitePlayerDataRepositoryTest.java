@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -103,6 +106,39 @@ class SQLitePlayerDataRepositoryTest {
         Optional<PlayerAspectData> loaded = repo.loadPlayer(playerId).get();
 
         assertTrue(loaded.isEmpty());
+        repo.close();
+    }
+
+    @Test
+    void freshDatabase_recordsCurrentSchemaVersion() throws Exception {
+        File dbFile = File.createTempFile("aspects-test", ".db");
+        dbFile.deleteOnExit();
+        SQLitePlayerDataRepository repo = new SQLitePlayerDataRepository(dbFile, Logger.getLogger("AspectsTest"));
+
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery("SELECT version FROM schema_meta")) {
+            assertTrue(rs.next());
+            assertEquals(SQLitePlayerDataRepository.CURRENT_SCHEMA_VERSION, rs.getInt("version"));
+            assertEquals(false, rs.next(), "there must be exactly one schema_meta row");
+        }
+        repo.close();
+    }
+
+    @Test
+    void reopeningExistingDatabase_doesNotDuplicateSchemaVersionRow() throws Exception {
+        File dbFile = File.createTempFile("aspects-test", ".db");
+        dbFile.deleteOnExit();
+        new SQLitePlayerDataRepository(dbFile, Logger.getLogger("AspectsTest")).close();
+
+        SQLitePlayerDataRepository repo = new SQLitePlayerDataRepository(dbFile, Logger.getLogger("AspectsTest"));
+
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery("SELECT COUNT(*) AS count FROM schema_meta")) {
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt("count"));
+        }
         repo.close();
     }
 }

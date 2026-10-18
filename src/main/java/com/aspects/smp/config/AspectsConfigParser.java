@@ -13,9 +13,22 @@ import java.util.Locale;
 import java.util.Map;
 
 public final class AspectsConfigParser {
+    /**
+     * The config.yml structure version this plugin version understands. Bump this, and add a branch
+     * keyed off the stored value, whenever a future change needs to migrate an older config.yml
+     * rather than just reading it with a new default — there is nothing to migrate from yet, since
+     * this is the first versioned config.
+     */
+    public static final int CURRENT_CONFIG_VERSION = 1;
+
     private AspectsConfigParser() {}
 
     public static GeneralConfig parseGeneral(FileConfiguration yml, List<String> errors) {
+        int configVersion = yml.getInt("config-version", CURRENT_CONFIG_VERSION);
+        if (configVersion > CURRENT_CONFIG_VERSION) {
+            errors.add("config.yml config-version (" + configVersion + ") is newer than this plugin " +
+                    "version supports (" + CURRENT_CONFIG_VERSION + ") -- was the plugin downgraded?");
+        }
         boolean debug = yml.getBoolean("general.debug", false);
         String sqliteFile = yml.getString("storage.sqlite-file", "playerdata.db");
         boolean firstJoinEnabled = yml.getBoolean("first-join.enabled", true);
@@ -37,7 +50,7 @@ public final class AspectsConfigParser {
             firstJoinParticleCount = 20;
         }
 
-        return new GeneralConfig(debug, sqliteFile, firstJoinEnabled, firstJoinSound,
+        return new GeneralConfig(configVersion, debug, sqliteFile, firstJoinEnabled, firstJoinSound,
                 firstJoinParticle, firstJoinParticleCount, blockedWorlds, excludeCurrentOnReroll,
                 revealAnimationEnabled, resetImmediateReassign, respectWorldGuard);
     }

@@ -19,6 +19,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public final class SQLitePlayerDataRepository implements PlayerDataRepository {
+    /**
+     * The database schema version this plugin version understands. Bump this, and add a branch
+     * keyed off the stored value in {@link #migrateSchema()}, whenever a future change needs to
+     * transform existing rows rather than just adding a new table/column that defaults cleanly —
+     * there is nothing to migrate from yet, since this is the first versioned schema.
+     */
+    static final int CURRENT_SCHEMA_VERSION = 1;
+
     private final Connection connection;
     private final ExecutorService executor;
     private final Logger logger;
@@ -38,9 +46,35 @@ public final class SQLitePlayerDataRepository implements PlayerDataRepository {
                 statement.execute("CREATE TABLE IF NOT EXISTS cooldowns (" +
                         "uuid TEXT NOT NULL, ability_id TEXT NOT NULL, expires_at INTEGER NOT NULL, " +
                         "PRIMARY KEY (uuid, ability_id))");
+                statement.execute("CREATE TABLE IF NOT EXISTS schema_meta (version INTEGER NOT NULL)");
             }
+            migrateSchema();
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to open SQLite database at " + databaseFile, e);
+        }
+    }
+
+    private void migrateSchema() throws SQLException {
+        int storedVersion;
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery("SELECT version FROM schema_meta LIMIT 1")) {
+            storedVersion = rs.next() ? rs.getInt("version") : 0;
+        }
+        if (storedVersion > CURRENT_SCHEMA_VERSION) {
+            logger.warning("Player data schema version (" + storedVersion + ") is newer than this " +
+                    "plugin version supports (" + CURRENT_SCHEMA_VERSION + ") -- was the plugin " +
+                    "downgraded? Proceeding without migration; this may cause issues.");
+            return;
+        }
+        if (storedVersion == CURRENT_SCHEMA_VERSION) {
+            return;
+        }
+        // storedVersion == 0 (fresh database, or one that predates schema versioning) falls straight
+        // through here with nothing to actually migrate. Future version bumps add a migration step
+        // per version here, e.g.: if (storedVersion < 2) { ...; storedVersion = 2; }
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("DELETE FROM schema_meta");
+            statement.executeUpdate("INSERT INTO schema_meta (version) VALUES (" + CURRENT_SCHEMA_VERSION + ")");
         }
     }
 
