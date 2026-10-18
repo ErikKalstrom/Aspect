@@ -28,11 +28,12 @@ public final class AspectsConfigParser {
         boolean respectWorldGuard = yml.getBoolean("world-restrictions.respect-worldguard", true);
 
         if (sqliteFile == null || sqliteFile.isBlank()) {
-            errors.add("storage.sqlite-file must not be blank");
+            errors.add("config.yml storage.sqlite-file must not be blank");
             sqliteFile = "playerdata.db";
         }
         if (firstJoinParticleCount < 0) {
-            errors.add("first-join.particle-count must not be negative");
+            errors.add("config.yml first-join.particle-count must not be negative");
+            firstJoinParticleCount = 20;
         }
 
         return new GeneralConfig(debug, sqliteFile, firstJoinEnabled, firstJoinSound,
@@ -91,22 +92,23 @@ public final class AspectsConfigParser {
         List<String> pattern = yml.getStringList("reroller.pattern");
         int resultAmount = yml.getInt("reroller.result-amount", 1);
 
+        boolean patternValid = pattern.size() == 3 && pattern.stream().allMatch(row -> row.length() == 3);
         if (pattern.size() != 3) {
             errors.add("recipes.yml reroller.pattern must have exactly 3 rows");
+        } else if (!patternValid) {
+            errors.add("recipes.yml reroller.pattern rows must each be exactly 3 characters");
+        }
+        if (!patternValid) {
             pattern = List.of("ADA", "DND", "ADA");
-        } else {
-            for (String row : pattern) {
-                if (row.length() != 3) {
-                    errors.add("recipes.yml reroller.pattern rows must each be exactly 3 characters");
-                    break;
-                }
-            }
         }
 
         Map<Character, Material> ingredients = new LinkedHashMap<>();
         ConfigurationSection ingredientsSection = yml.getConfigurationSection("reroller.ingredients");
         if (ingredientsSection == null) {
             errors.add("recipes.yml is missing the 'reroller.ingredients' section");
+            ingredients.put('A', Material.AMETHYST_SHARD);
+            ingredients.put('D', Material.DIAMOND);
+            ingredients.put('N', Material.NETHER_STAR);
         } else {
             for (String key : ingredientsSection.getKeys(false)) {
                 if (key.length() != 1) {

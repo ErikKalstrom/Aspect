@@ -6,6 +6,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,13 +70,21 @@ public final class ConfigManager {
         RecipesConfig stagedRecipes = AspectsConfigParser.parseRecipes(recipesYml, errors);
 
         Map<String, String> stagedMessages = new HashMap<>();
-        for (Map.Entry<String, Object> entry : messagesYml.getValues(true).entrySet()) {
-            if (entry.getValue() instanceof String str) {
-                stagedMessages.put(entry.getKey(), str);
-            }
+        FileConfiguration bundledMessages = loadBundledDefaults("messages.yml");
+        if (bundledMessages != null) {
+            putStringValues(stagedMessages, bundledMessages);
         }
+        putStringValues(stagedMessages, messagesYml);
 
         return new StagedConfig(stagedGeneral, stagedAspects, stagedMessages, stagedRecipes, errors);
+    }
+
+    private static void putStringValues(Map<String, String> target, FileConfiguration source) {
+        for (Map.Entry<String, Object> entry : source.getValues(true).entrySet()) {
+            if (entry.getValue() instanceof String str) {
+                target.put(entry.getKey(), str);
+            }
+        }
     }
 
     private void apply(StagedConfig staged) {
@@ -92,6 +104,26 @@ public final class ConfigManager {
     private FileConfiguration loadYaml(String name) {
         File file = new File(plugin.getDataFolder(), name);
         return YamlConfiguration.loadConfiguration(file);
+    }
+
+    /**
+     * Loads the plugin jar's bundled copy of a resource as its own standalone {@link FileConfiguration},
+     * independent of whatever is on disk. Used to backfill keys a server's on-disk file predates (e.g. a
+     * new messages.yml entry added in a later plugin version) — without this, an upgraded server's
+     * on-disk messages.yml missing a new key would make {@link #message(String)} show the raw key name
+     * to players instead of real text, since {@code getValues(true)} only reflects what is actually
+     * present in a file, not a configured Bukkit "defaults" section.
+     */
+    private FileConfiguration loadBundledDefaults(String name) {
+        try (InputStream resource = plugin.getResource(name)) {
+            if (resource == null) {
+                return null;
+            }
+            return YamlConfiguration.loadConfiguration(new InputStreamReader(resource, StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            plugin.getLogger().warning("Could not load bundled defaults for " + name + ": " + e.getMessage());
+            return null;
+        }
     }
 
     public GeneralConfig general() {

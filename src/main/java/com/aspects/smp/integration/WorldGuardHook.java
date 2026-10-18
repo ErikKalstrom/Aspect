@@ -42,11 +42,20 @@ final class WorldGuardHook {
     /**
      * Checks WorldGuard's own built-in {@code PVP} flag at a location — independent of the
      * {@code aspects-abilities} flag above, which only gates ability activation, not combat itself.
+     *
+     * <p>Deliberately uses {@code queryState(...) != DENY} rather than {@code testState(...)}: the
+     * PVP flag is registered by WorldGuard itself with a {@code false} coded default, which means
+     * {@link StateFlag#getDefault()} returns {@code null} ("no decision"), not an explicit ALLOW —
+     * and {@code testState}/{@code StateFlag.test(...)} treats a {@code null} result as denied. That
+     * would make this method return {@code false} (PvP not allowed) everywhere WorldGuard is
+     * installed, for any point not covered by a region that explicitly sets {@code pvp}, which is
+     * not what this flag means in practice. WorldGuard's own internal PvP enforcement uses this same
+     * {@code != DENY} pattern for exactly that reason, treating "no applicable region" as allowed.
      */
     boolean isPvpAllowed(Location location, Player actor) {
         RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
         LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(actor);
-        return query.testState(BukkitAdapter.adapt(location), localPlayer, Flags.PVP);
+        return query.queryState(BukkitAdapter.adapt(location), localPlayer, Flags.PVP) != StateFlag.State.DENY;
     }
 
     private void registerFlag(Plugin plugin) {
