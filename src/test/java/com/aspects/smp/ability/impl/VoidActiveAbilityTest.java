@@ -58,4 +58,9 @@ class VoidActiveAbilityTest {
     void pickSafeDistance_wallImmediatelyAdjacent_returnsZero() {
         assertEquals(0, VoidActiveAbility.pickSafeDistance(7, distance -> distance < 1, distance -> true));
     }
+
+    // isSafeLanding(Material, Material, Material) is intentionally not unit-tested here: Material.isSolid()
+    // requires a live server registry to be initialized (NoClassDefFoundError otherwise), so -- like every
+    // other block-material check in this codebase -- it is manual-verification-only. See
+    // docs/adding-a-new-aspect.md's testing section.
 }
