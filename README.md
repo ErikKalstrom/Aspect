@@ -50,7 +50,9 @@ server's `plugins/` folder.
 New players are assigned a random enabled Aspect on first join, weighted by each
 Aspect's own `weight` value in `aspects.yml` (rarity is a display label, not a separate
 multiplier — the shipped weights are chosen so the aggregate chance per rarity tier
-approximates Common 53% / Rare 27% / Epic 13% / Legendary 7%).
+approximates Common 53% / Rare 27% / Epic 13% / Legendary 7%). Since Void is the only
+Legendary Aspect, it individually appears exactly as often as any single Epic Aspect
+(Thunder or Blood) — the "rarest tier" distinction only shows up in the aggregate.
 Every exact number (cooldowns, damage, percentages, weights) lives in `aspects.yml` and
 can be retuned without touching code; any Aspect can also be disabled entirely.
 

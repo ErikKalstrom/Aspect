@@ -42,9 +42,13 @@ public final class FireActiveAbility implements Ability {
                 if (!context.plugin().getProtectionGate().canTargetPlayer(caster, target)) {
                     continue;
                 }
-                double healthBefore = target.getHealth();
+                // Absorption hearts can fully soak a hit without reducing health at all, so check
+                // health+absorption together -- otherwise a damage-blocking golden apple buff would
+                // also make this look like a no-op hit and wrongly skip the burn.
+                double effectiveHealthBefore = target.getHealth() + target.getAbsorptionAmount();
                 target.damage(damage, caster);
-                if (target.getHealth() < healthBefore) {
+                double effectiveHealthAfter = target.getHealth() + target.getAbsorptionAmount();
+                if (effectiveHealthAfter < effectiveHealthBefore) {
                     target.setFireTicks(Math.max(target.getFireTicks(), burnTicks));
                 }
             }

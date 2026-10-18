@@ -112,6 +112,10 @@ public final class AspectsPlugin extends JavaPlugin {
                 new File(getDataFolder(), configManager.general().sqliteFile()), getLogger());
 
         aspectRegistry = buildRegistry(configManager.aspectDefinitions());
+        if (aspectRegistry.enabled().isEmpty()) {
+            getLogger().severe("No Aspects are enabled -- check aspects.yml for a missing or broken " +
+                    "'aspects' section. Players cannot be assigned an Aspect until this is fixed.");
+        }
 
         cooldownManager = new AbilityCooldownManager(dataRepository);
         temporaryEffectManager = new TemporaryEffectManager();
