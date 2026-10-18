@@ -12,8 +12,12 @@ aspects:
     weight: 20
     icon: BLAZE_POWDER
     passive:
+      name: "Burning Soul"
+      description: "Protects you from ordinary fire and lava damage."
       fire-resistance: true
     active:
+      name: "Inferno Burst"
+      description: "Burns and damages nearby enemies in a close-range burst."
       cooldown-seconds: 25
       radius: 4.0
       damage: 4.0
@@ -28,8 +32,12 @@ aspects:
     weight: 40
     icon: HEART_OF_THE_SEA
     passive:
+      name: "Ocean's Blessing"
+      description: "Grants permanent Water Breathing."
       water-breathing: true
     active:
+      name: "Healing Wave"
+      description: "Heals you for a fixed amount, up to your maximum health."
       cooldown-seconds: 35
       heal-amount: 4.0
 
@@ -41,8 +49,12 @@ aspects:
     weight: 20
     icon: PACKED_ICE
     passive:
+      name: "Frozen Heart"
+      description: "Protects you from powder-snow freezing damage."
       freeze-immunity: true
     active:
+      name: "Frost Nova"
+      description: "Slows nearby enemies in a circular burst around you."
       cooldown-seconds: 24
       radius: 5.0
       slowness-duration-ticks: 60
@@ -58,8 +70,12 @@ aspects:
     weight: 10
     icon: TRIDENT
     passive:
+      name: "Charged"
+      description: "Grants a permanent burst of movement speed."
       speed-boost: true
     active:
+      name: "Lightning Dash"
+      description: "Propels you forward at high speed in the direction you're facing."
       cooldown-seconds: 18
       max-distance: 7.0
       velocity-per-block: 0.3
@@ -74,9 +90,13 @@ aspects:
     weight: 5
     icon: ENDER_PEARL
     passive:
+      name: "Voidborn"
+      description: "Reduces fall damage you take by half."
       fall-damage-reduction: true
       reduction-percent: 50
     active:
+      name: "Void Step"
+      description: "Teleports you forward to a safe location in the direction you're facing."
       cooldown-seconds: 22
       max-distance: 7.0
 
@@ -88,8 +108,12 @@ aspects:
     weight: 20
     icon: SHIELD
     passive:
+      name: "Stone Skin"
+      description: "Grants permanent Resistance."
       resistance-boost: true
     active:
+      name: "Earthguard"
+      description: "Grants temporary extra Resistance."
       cooldown-seconds: 30
       resistance-duration-ticks: 60
       resistance-amplifier: 1
@@ -102,8 +126,12 @@ aspects:
     weight: 40
     icon: FEATHER
     passive:
+      name: "Lightfoot"
+      description: "Grants a permanent burst of movement speed."
       speed-boost: true
     active:
+      name: "Wind Leap"
+      description: "Propels you upward and slightly forward."
       cooldown-seconds: 16
       upward-velocity: 1.0
       forward-velocity: 0.6
@@ -116,9 +144,13 @@ aspects:
     weight: 10
     icon: REDSTONE
     passive:
+      name: "Bloodlust"
+      description: "Boosts your outgoing melee damage."
       melee-damage-bonus: true
       melee-damage-bonus-percent: 10
     active:
+      name: "Blood Pact"
+      description: "Sacrifice health for a temporary extra melee damage boost."
       cooldown-seconds: 28
       sacrifice-amount: 2.0
       bonus-percent: 20

@@ -92,6 +92,9 @@ public final class AspectSelectorGUI implements AspectsGuiHolder {
                         aspect.definition().rarity().color() + ">",
                 aspect.definition().description(),
                 " ",
+                plugin.getConfigManager().message("gui.details.passive-label") + " " + aspect.definition().passiveName(),
+                plugin.getConfigManager().message("gui.details.active-label") + " " + aspect.definition().activeName(),
+                " ",
                 plugin.getConfigManager().message("gui.selector.choose-lore"));
         meta.lore(lore.stream().map(line -> MessageUtil.parse(line).decoration(TextDecoration.ITALIC, false)).toList());
         item.setItemMeta(meta);

@@ -74,24 +74,16 @@ public final class AspectDetailsGUI implements AspectsGuiHolder {
         lore.add(" ");
         lore.add(aspect.definition().description());
         lore.add(" ");
-        lore.add(plugin.getConfigManager().message("gui.details.passive-label") + " " + passiveSummary());
-        lore.add(plugin.getConfigManager().message("gui.details.active-label") + " " + activeSummary());
+        lore.add(plugin.getConfigManager().message("gui.details.passive-label") + " " + aspect.definition().passiveName());
+        lore.add("<gray>" + aspect.definition().passiveDescription() + "</gray>");
+        lore.add(plugin.getConfigManager().message("gui.details.active-label") + " " + aspect.definition().activeName());
+        lore.add("<gray>" + aspect.definition().activeDescription() + "</gray>");
         lore.add(plugin.getConfigManager().message("gui.details.cooldown-label") + " " +
                 (long) aspect.definition().getDouble("active.cooldown-seconds", 20.0) + "s");
 
         meta.lore(lore.stream().map(line -> MessageUtil.parse(line).decoration(TextDecoration.ITALIC, false)).toList());
         item.setItemMeta(meta);
         return item;
-    }
-
-    private String passiveSummary() {
-        return aspect.definition().id().substring(0, 1).toUpperCase(java.util.Locale.ROOT) +
-                aspect.definition().id().substring(1) + " passive";
-    }
-
-    private String activeSummary() {
-        return aspect.definition().id().substring(0, 1).toUpperCase(java.util.Locale.ROOT) +
-                aspect.definition().id().substring(1) + " active ability";
     }
 
     @Override

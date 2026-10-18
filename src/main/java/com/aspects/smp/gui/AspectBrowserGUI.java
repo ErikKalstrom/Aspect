@@ -78,15 +78,15 @@ public final class AspectBrowserGUI implements AspectsGuiHolder {
         ItemStack item = new ItemStack(aspect.definition().icon());
         ItemMeta meta = item.getItemMeta();
         meta.displayName(MessageUtil.parse(aspect.definition().displayName()).decoration(TextDecoration.ITALIC, false));
-        String capitalizedId = aspect.definition().id().substring(0, 1).toUpperCase(java.util.Locale.ROOT) +
-                aspect.definition().id().substring(1);
         List<String> lore = List.of(
                 "<" + aspect.definition().rarity().color() + ">" + aspect.definition().rarity().name() + "</" +
                         aspect.definition().rarity().color() + ">",
                 aspect.definition().description(),
                 " ",
-                plugin.getConfigManager().message("gui.details.passive-label") + " " + capitalizedId + " passive",
-                plugin.getConfigManager().message("gui.details.active-label") + " " + capitalizedId + " active ability",
+                plugin.getConfigManager().message("gui.details.passive-label") + " " + aspect.definition().passiveName(),
+                "<gray>" + aspect.definition().passiveDescription() + "</gray>",
+                plugin.getConfigManager().message("gui.details.active-label") + " " + aspect.definition().activeName(),
+                "<gray>" + aspect.definition().activeDescription() + "</gray>",
                 plugin.getConfigManager().message("gui.details.cooldown-label") + " " +
                         (long) aspect.definition().getDouble("active.cooldown-seconds", 20.0) + "s");
         meta.lore(lore.stream().map(line -> MessageUtil.parse(line).decoration(TextDecoration.ITALIC, false)).toList());
