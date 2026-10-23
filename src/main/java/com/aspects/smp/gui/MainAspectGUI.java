@@ -2,7 +2,9 @@ package com.aspects.smp.gui;
 
 import com.aspects.smp.AspectsPlugin;
 import com.aspects.smp.aspect.Aspect;
+import com.aspects.smp.config.MasteryLevel;
 import com.aspects.smp.config.RecipesConfig;
+import com.aspects.smp.mastery.MasteryLevelCalculator;
 import com.aspects.smp.util.MessageUtil;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
@@ -92,9 +94,21 @@ public final class MainAspectGUI implements AspectsGuiHolder {
         }
         lore.add(" ");
         lore.add(cooldownLine);
+        if (plugin.getConfigManager().mastery().enabled()) {
+            lore.add(" ");
+            lore.add(plugin.getConfigManager().message("gui.main.mastery-label") + " " + masterySummary(aspect));
+        }
         meta.lore(lore.stream().map(line -> MessageUtil.parse(line).decoration(TextDecoration.ITALIC, false)).toList());
         item.setItemMeta(meta);
         return item;
+    }
+
+    private String masterySummary(Aspect aspect) {
+        List<MasteryLevel> levels = plugin.getConfigManager().mastery().levels();
+        int count = plugin.getMasteryManager().getActivationCount(player.getUniqueId(), aspect.id());
+        String levelTitle = MasteryLevelCalculator.currentLevel(levels, count).map(MasteryLevel::title)
+                .orElse(plugin.getConfigManager().message("mastery.unranked-title"));
+        return levelTitle + " <gray>(" + count + ")</gray>";
     }
 
     private ItemStack craftInfoItem() {

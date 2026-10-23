@@ -18,5 +18,16 @@ public interface PlayerDataRepository {
 
     CompletableFuture<Void> deleteCooldowns(UUID playerId);
 
+    CompletableFuture<Map<String, Integer>> loadMastery(UUID playerId);
+
+    /** Atomically increments the persisted count by one and returns the new total (or a negative
+     * value if the write failed), so the database -- not a possibly-unloaded in-memory cache -- is
+     * always the source of truth for the actual count. */
+    CompletableFuture<Integer> incrementMastery(UUID playerId, String aspectId);
+
+    CompletableFuture<Void> deleteMastery(UUID playerId, String aspectId);
+
+    CompletableFuture<Void> deleteAllMastery(UUID playerId);
+
     void close();
 }

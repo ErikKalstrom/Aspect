@@ -167,6 +167,11 @@ yet implemented in code; skipping registration") and simply excluded, rather tha
 crashing — so it's safe to stage a new Aspect's config before its code exists, or to
 disable one by removing its factories without touching `aspects.yml`.
 
+If Aspect Mastery is enabled (`mastery.yml`), your new Aspect's activations are tracked
+automatically the moment it's registered — `AbilityManager` records a successful
+activation generically by Aspect id after `activate()` returns `true`, so there is
+nothing to wire up yourself.
+
 ## 5. Test it
 
 - Extract any pure logic (math, distance/clamp calculations, selection rules) into a

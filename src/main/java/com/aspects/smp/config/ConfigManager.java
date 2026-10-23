@@ -23,6 +23,7 @@ public final class ConfigManager {
     private Map<String, AspectDefinition> aspectDefinitions = Map.of();
     private Map<String, String> messages = Map.of();
     private RecipesConfig recipesConfig;
+    private MasteryConfig masteryConfig;
 
     public ConfigManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -59,16 +60,19 @@ public final class ConfigManager {
         saveResourceIfMissing("aspects.yml");
         saveResourceIfMissing("messages.yml");
         saveResourceIfMissing("recipes.yml");
+        saveResourceIfMissing("mastery.yml");
 
         List<String> errors = new ArrayList<>();
         FileConfiguration configYml = loadYaml("config.yml", errors);
         FileConfiguration aspectsYml = loadYaml("aspects.yml", errors);
         FileConfiguration messagesYml = loadYaml("messages.yml", errors);
         FileConfiguration recipesYml = loadYaml("recipes.yml", errors);
+        FileConfiguration masteryYml = loadYaml("mastery.yml", errors);
 
         GeneralConfig stagedGeneral = AspectsConfigParser.parseGeneral(configYml, errors);
         Map<String, AspectDefinition> stagedAspects = AspectsConfigParser.parseAspects(aspectsYml, errors);
         RecipesConfig stagedRecipes = AspectsConfigParser.parseRecipes(recipesYml, errors);
+        MasteryConfig stagedMastery = AspectsConfigParser.parseMastery(masteryYml, errors);
 
         Map<String, String> stagedMessages = new HashMap<>();
         FileConfiguration bundledMessages = loadBundledDefaults("messages.yml");
@@ -77,7 +81,7 @@ public final class ConfigManager {
         }
         putStringValues(stagedMessages, messagesYml);
 
-        return new StagedConfig(stagedGeneral, stagedAspects, stagedMessages, stagedRecipes, errors);
+        return new StagedConfig(stagedGeneral, stagedAspects, stagedMessages, stagedRecipes, stagedMastery, errors);
     }
 
     /** Package-private so the merge direction (bundled first, on-disk overlaid on top) can be
@@ -95,6 +99,7 @@ public final class ConfigManager {
         this.aspectDefinitions = staged.aspects();
         this.messages = staged.messages();
         this.recipesConfig = staged.recipes();
+        this.masteryConfig = staged.mastery();
     }
 
     private void saveResourceIfMissing(String name) {
@@ -160,7 +165,12 @@ public final class ConfigManager {
         return recipesConfig;
     }
 
+    public MasteryConfig mastery() {
+        return masteryConfig;
+    }
+
     private record StagedConfig(GeneralConfig general, Map<String, AspectDefinition> aspects,
-                                 Map<String, String> messages, RecipesConfig recipes, List<String> errors) {
+                                 Map<String, String> messages, RecipesConfig recipes,
+                                 MasteryConfig mastery, List<String> errors) {
     }
 }

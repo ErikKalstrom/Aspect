@@ -84,6 +84,8 @@ Admin (`/aspects admin ...`, or `/aspects admin` alone to open the admin GUI):
 | `admin give <player> <aspect>`            | `aspects.admin.give`      |
 | `admin give-selection <player>`           | `aspects.admin.selector`  |
 | `admin clear-cooldown <player>`           | `aspects.admin.cooldown`  |
+| `admin mastery reset <player> [aspect]`   | `aspects.admin.mastery`   |
+| `admin mastery inspect <player> [aspect]` | `aspects.admin.mastery`   |
 | `admin reload`                            | `aspects.admin.reload`    |
 | `admin list`                              | `aspects.admin`           |
 | `admin debug <player>`                    | `aspects.admin.debug`     |
@@ -91,6 +93,28 @@ Admin (`/aspects admin ...`, or `/aspects admin` alone to open the admin GUI):
 The admin GUI (`/aspects admin` with no arguments) lists online players and exposes
 assign/reroll/give-reroller/clear-cooldown actions per player without needing to type
 commands.
+
+## Aspect Mastery
+
+Optional, **disabled by default** (`mastery.yml`'s `enabled: false`): tracks how many
+times each player has successfully activated each Aspect's active ability, independent
+of which Aspect they currently have — mastery for an Aspect you've previously held is
+never lost by rerolling away from it, only by an explicit admin reset. Reaching a
+configured activation count unlocks a cosmetic title (`Novice`, `Adept`, `Expert`,
+`Master`, `Grandmaster` by default), shown in `/aspects info` and in the main Aspects
+GUI. There is no gameplay-affecting reward (no cooldown reduction, no stat bonus) —
+this was a deliberate, conservative first-version choice (see
+[`docs/progression-mastery-interview-questions.md`](docs/progression-mastery-interview-questions.md)
+for the design questions this was built from; the product team declined to answer them,
+so every number and scope choice here is the implementer's own judgment call, not a
+tested balance decision).
+
+Levels and titles are fully configurable in `mastery.yml` and apply uniformly to every
+Aspect — mastery is counted by successful activations, not by time played, so an
+Aspect with a longer cooldown (e.g. Tide's 35s) simply takes longer in real time to
+reach the same level than a shorter one (e.g. Wind's 16s); this does not need separate
+per-Aspect tuning. Admins can inspect or reset a player's progress with
+`/aspects admin mastery inspect|reset <player> [aspect]`.
 
 ## Configuration
 
@@ -100,10 +124,11 @@ commands.
 | `aspects.yml`    | Per-Aspect definitions: enabled state, rarity/weight, passive/active tuning |
 | `messages.yml`   | All player-facing text and GUI titles/lore, editable and reloadable live |
 | `recipes.yml`    | The Aspect Reroller item's crafting recipe                              |
+| `mastery.yml`    | Optional per-ability mastery tracking: on/off switch and level thresholds/titles |
 
-`messages.yml`, `recipes.yml`, and the reveal-animation setting apply live via
-`/aspects admin reload`. Changes to `aspects.yml`, the reroll/reset behavior flags,
-`blocked-worlds`, or `respect-worldguard` require a server restart.
+`messages.yml`, `recipes.yml`, `mastery.yml`, and the reveal-animation setting apply
+live via `/aspects admin reload`. Changes to `aspects.yml`, the reroll/reset behavior
+flags, `blocked-worlds`, or `respect-worldguard` require a server restart.
 
 ## WorldGuard integration
 
@@ -164,6 +189,14 @@ and `aspects.gui` default to all players; everything else (`aspects.inspect`,
   ability when the main hand is empty; it's also debounced to one activation per client
   packet, so a second rapid press within the same tick is intentionally ignored, not a
   bug.
+- **Mastery doesn't show up anywhere** — confirm `mastery.yml`'s `enabled` is `true`
+  (this setting is applied live by `/aspects admin reload`, no restart needed). A fresh
+  server with mastery enabled for the first time starts everyone at 0 activations for
+  every Aspect, which is expected. Turning mastery off and back on later does **not**
+  lose anyone's progress — every activation is counted directly in the database, so a
+  player's real count is always correct the moment they next use an ability, even if
+  their displayed count briefly shows 0 right after a reload re-enables it before they've
+  acted again.
 
 ## Project docs
 
@@ -172,5 +205,9 @@ and `aspects.gui` default to all players; everything else (`aspects.inspect`,
   implementation.
 - `docs/adding-a-new-aspect.md` — step-by-step guide for adding a 9th (or later) Aspect
   without touching the command/GUI/persistence layers.
+- `docs/progression-mastery-interview-questions.md` — the design questions the Aspect
+  Mastery feature was built from; the product team declined to answer them, so it was
+  implemented with the lowest-risk option for each (off by default, purely cosmetic
+  rewards, per-(player, Aspect) progress) rather than left unbuilt.
 - `docs/superpowers/specs/` and `docs/superpowers/plans/` — the design specs and
   implementation plans this plugin was built from, phase by phase.

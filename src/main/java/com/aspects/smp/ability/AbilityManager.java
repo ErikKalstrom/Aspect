@@ -53,6 +53,9 @@ public final class AbilityManager {
 
         long cooldownSeconds = (long) aspect.definition().getDouble("active.cooldown-seconds", 20.0);
         cooldownManager.startCooldown(player.getUniqueId(), aspect.id(), cooldownSeconds);
+        if (plugin.getConfigManager().mastery().enabled()) {
+            plugin.getMasteryManager().recordActivation(player.getUniqueId(), aspect.id());
+        }
         return ActivationResult.succeeded();
     }
 

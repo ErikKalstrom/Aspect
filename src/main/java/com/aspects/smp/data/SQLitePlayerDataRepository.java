@@ -55,6 +55,9 @@ public final class SQLitePlayerDataRepository implements PlayerDataRepository {
                 statement.execute("CREATE TABLE IF NOT EXISTS cooldowns (" +
                         "uuid TEXT NOT NULL, ability_id TEXT NOT NULL, expires_at INTEGER NOT NULL, " +
                         "PRIMARY KEY (uuid, ability_id))");
+                statement.execute("CREATE TABLE IF NOT EXISTS mastery (" +
+                        "uuid TEXT NOT NULL, aspect_id TEXT NOT NULL, activations INTEGER NOT NULL, " +
+                        "PRIMARY KEY (uuid, aspect_id))");
                 statement.execute("CREATE TABLE IF NOT EXISTS schema_meta (version INTEGER NOT NULL)");
             }
             migrateSchema();
@@ -191,6 +194,87 @@ public final class SQLitePlayerDataRepository implements PlayerDataRepository {
                 ps.executeUpdate();
             } catch (SQLException e) {
                 logger.severe("Failed to delete cooldowns for " + playerId + ": " + e.getMessage());
+            }
+        }, executor);
+    }
+
+    @Override
+    public CompletableFuture<Map<String, Integer>> loadMastery(UUID playerId) {
+        return CompletableFuture.supplyAsync(() -> {
+            Map<String, Integer> result = new HashMap<>();
+            String sql = "SELECT aspect_id, activations FROM mastery WHERE uuid = ?";
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, playerId.toString());
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        result.put(rs.getString("aspect_id"), rs.getInt("activations"));
+                    }
+                }
+            } catch (SQLException e) {
+                logger.severe("Failed to load mastery for " + playerId + ": " + e.getMessage());
+            }
+            return result;
+        }, executor);
+    }
+
+    /**
+     * Atomically increments and returns the new persisted count, rather than taking a count to
+     * write: an absolute-write version of this method (as originally built) let the caller's
+     * in-memory cache silently overwrite real historical data whenever that cache hadn't been
+     * loaded first -- e.g. mastery tracking is turned off, a player joins while it's off (so
+     * nothing loads their cache), then it's turned back on live and their very next activation
+     * would otherwise reset their count to 1. Making the database the source of truth for the
+     * increment itself removes that whole class of clobber, independent of cache state.
+     */
+    @Override
+    public CompletableFuture<Integer> incrementMastery(UUID playerId, String aspectId) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                try (PreparedStatement upsert = connection.prepareStatement(
+                        "INSERT INTO mastery (uuid, aspect_id, activations) VALUES (?, ?, 1) " +
+                                "ON CONFLICT(uuid, aspect_id) DO UPDATE SET activations = activations + 1")) {
+                    upsert.setString(1, playerId.toString());
+                    upsert.setString(2, aspectId);
+                    upsert.executeUpdate();
+                }
+                try (PreparedStatement select = connection.prepareStatement(
+                        "SELECT activations FROM mastery WHERE uuid = ? AND aspect_id = ?")) {
+                    select.setString(1, playerId.toString());
+                    select.setString(2, aspectId);
+                    try (ResultSet rs = select.executeQuery()) {
+                        return rs.next() ? rs.getInt("activations") : 1;
+                    }
+                }
+            } catch (SQLException e) {
+                logger.severe("Failed to increment mastery for " + playerId + "/" + aspectId + ": " + e.getMessage());
+                return -1;
+            }
+        }, executor);
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteMastery(UUID playerId, String aspectId) {
+        return CompletableFuture.runAsync(() -> {
+            String sql = "DELETE FROM mastery WHERE uuid = ? AND aspect_id = ?";
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, playerId.toString());
+                ps.setString(2, aspectId);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                logger.severe("Failed to delete mastery for " + playerId + ": " + e.getMessage());
+            }
+        }, executor);
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteAllMastery(UUID playerId) {
+        return CompletableFuture.runAsync(() -> {
+            String sql = "DELETE FROM mastery WHERE uuid = ?";
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, playerId.toString());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                logger.severe("Failed to delete all mastery for " + playerId + ": " + e.getMessage());
             }
         }, executor);
     }

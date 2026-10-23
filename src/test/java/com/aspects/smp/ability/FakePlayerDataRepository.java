@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class FakePlayerDataRepository implements PlayerDataRepository {
     public final Map<UUID, PlayerAspectData> players = new ConcurrentHashMap<>();
     public final Map<UUID, Map<String, Long>> cooldowns = new ConcurrentHashMap<>();
+    public final Map<UUID, Map<String, Integer>> mastery = new ConcurrentHashMap<>();
 
     @Override
     public CompletableFuture<Optional<PlayerAspectData>> loadPlayer(UUID playerId) {
@@ -45,6 +46,33 @@ public final class FakePlayerDataRepository implements PlayerDataRepository {
     @Override
     public CompletableFuture<Void> deleteCooldowns(UUID playerId) {
         cooldowns.remove(playerId);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<Map<String, Integer>> loadMastery(UUID playerId) {
+        return CompletableFuture.completedFuture(new HashMap<>(mastery.getOrDefault(playerId, Map.of())));
+    }
+
+    @Override
+    public CompletableFuture<Integer> incrementMastery(UUID playerId, String aspectId) {
+        int newCount = mastery.computeIfAbsent(playerId, id -> new ConcurrentHashMap<>())
+                .merge(aspectId, 1, Integer::sum);
+        return CompletableFuture.completedFuture(newCount);
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteMastery(UUID playerId, String aspectId) {
+        Map<String, Integer> playerMastery = mastery.get(playerId);
+        if (playerMastery != null) {
+            playerMastery.remove(aspectId);
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteAllMastery(UUID playerId) {
+        mastery.remove(playerId);
         return CompletableFuture.completedFuture(null);
     }
 

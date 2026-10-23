@@ -191,4 +191,62 @@ class SQLitePlayerDataRepositoryTest {
         }
         repo.close();
     }
+
+    @Test
+    void incrementMastery_thenLoadMastery_roundTrips() throws Exception {
+        SQLitePlayerDataRepository repo = newRepository();
+        UUID playerId = UUID.randomUUID();
+
+        int newCount = repo.incrementMastery(playerId, "fire").get();
+        Map<String, Integer> mastery = repo.loadMastery(playerId).get();
+
+        assertEquals(1, newCount);
+        assertEquals(1, mastery.size());
+        assertEquals(1, mastery.get("fire"));
+        repo.close();
+    }
+
+    @Test
+    void incrementMastery_calledTwice_accumulatesInTheDatabase() throws Exception {
+        SQLitePlayerDataRepository repo = newRepository();
+        UUID playerId = UUID.randomUUID();
+
+        int first = repo.incrementMastery(playerId, "fire").get();
+        int second = repo.incrementMastery(playerId, "fire").get();
+        Map<String, Integer> mastery = repo.loadMastery(playerId).get();
+
+        assertEquals(1, first);
+        assertEquals(2, second);
+        assertEquals(2, mastery.get("fire"));
+        repo.close();
+    }
+
+    @Test
+    void deleteMastery_removesOnlyThatAspect() throws Exception {
+        SQLitePlayerDataRepository repo = newRepository();
+        UUID playerId = UUID.randomUUID();
+        repo.incrementMastery(playerId, "fire").get();
+        repo.incrementMastery(playerId, "frost").get();
+
+        repo.deleteMastery(playerId, "fire").get();
+        Map<String, Integer> mastery = repo.loadMastery(playerId).get();
+
+        assertEquals(1, mastery.size());
+        assertEquals(1, mastery.get("frost"));
+        repo.close();
+    }
+
+    @Test
+    void deleteAllMastery_removesEveryAspectForPlayer() throws Exception {
+        SQLitePlayerDataRepository repo = newRepository();
+        UUID playerId = UUID.randomUUID();
+        repo.incrementMastery(playerId, "fire").get();
+        repo.incrementMastery(playerId, "frost").get();
+
+        repo.deleteAllMastery(playerId).get();
+        Map<String, Integer> mastery = repo.loadMastery(playerId).get();
+
+        assertTrue(mastery.isEmpty());
+        repo.close();
+    }
 }

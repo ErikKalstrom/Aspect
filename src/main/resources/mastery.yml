@@ -1,0 +1,26 @@
+# Aspect mastery — optional progression tracking based on successful ability activations.
+#
+# Disabled by default: this is the one feature in this plugin without real player data behind
+# its balance numbers yet (see docs/progression-mastery-interview-questions.md for the design
+# questions this was built from — product declined to answer them, so these are the
+# implementer's own judgment calls, documented here and kept deliberately low-risk: purely
+# cosmetic rewards, no gameplay-affecting bonuses, off by default).
+#
+# Mastery is tracked per (player, Aspect) pair and survives rerolling away from and back to an
+# Aspect, a server restart, and a plugin reload. The same level thresholds and titles apply to
+# every Aspect, regardless of that Aspect's own cooldown -- counted by successful activations,
+# not by time played, so a longer-cooldown Aspect simply takes longer in real time to reach the
+# same level, which does not need separate tuning.
+enabled: false
+
+levels:
+  - activations: 25
+    title: "Novice"
+  - activations: 75
+    title: "Adept"
+  - activations: 150
+    title: "Expert"
+  - activations: 300
+    title: "Master"
+  - activations: 500
+    title: "Grandmaster"

@@ -24,6 +24,9 @@ public final class PlayerJoinListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         plugin.getAspectManager().loadOrAssign(player, () -> announceFirstJoin(player));
+        if (plugin.getConfigManager().mastery().enabled()) {
+            plugin.getMasteryManager().loadForPlayer(player.getUniqueId());
+        }
     }
 
     private void announceFirstJoin(Player player) {

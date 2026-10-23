@@ -15,5 +15,6 @@ public final class PlayerQuitListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         plugin.getAspectManager().unload(event.getPlayer());
+        plugin.getMasteryManager().clearLocalCache(event.getPlayer().getUniqueId());
     }
 }

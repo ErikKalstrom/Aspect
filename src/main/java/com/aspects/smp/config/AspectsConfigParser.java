@@ -7,6 +7,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -188,6 +189,33 @@ public final class AspectsConfigParser {
         }
 
         return new RecipesConfig(enabled, pattern, ingredients, resultAmount);
+    }
+
+    public static MasteryConfig parseMastery(FileConfiguration yml, List<String> errors) {
+        boolean enabled = yml.getBoolean("enabled", false);
+        List<Map<?, ?>> rawLevels = yml.getMapList("levels");
+        List<MasteryLevel> levels = new ArrayList<>();
+        for (Map<?, ?> raw : rawLevels) {
+            Object activationsRaw = raw.get("activations");
+            Object titleRaw = raw.get("title");
+            int activations = (activationsRaw instanceof Number number) ? number.intValue() : -1;
+            String title = (titleRaw instanceof String str) ? str : null;
+            if (activations < 1) {
+                errors.add("mastery.yml has a level with an invalid 'activations' value: " + activationsRaw);
+                continue;
+            }
+            if (title == null || title.isBlank()) {
+                errors.add("mastery.yml has a level (activations: " + activations + ") with a missing or blank 'title'");
+                continue;
+            }
+            levels.add(new MasteryLevel(activations, title));
+        }
+        levels.sort(Comparator.comparingInt(MasteryLevel::activations));
+        if (enabled && levels.isEmpty()) {
+            errors.add("mastery.yml is enabled but has no valid levels -- every player will stay " +
+                    "'Unranked' forever; add at least one entry under 'levels'");
+        }
+        return new MasteryConfig(enabled, List.copyOf(levels));
     }
 
     private static Map<Character, Material> defaultIngredients() {
