@@ -20,10 +20,7 @@ published as a ZIP at the repository's
 newest build, no manual steps.
 The ZIP contains `Aspects.jar` (drop into `plugins/`), this README, and a
 `default-configs/` folder with the shipped `config.yml`/`aspects.yml`/`messages.yml`/
-`recipes.yml` for reference before installing.
-
-(Note: this is currently a private repository — anyone the ZIP is shared with needs
-read access to it, either as an invited collaborator or by the repo being made public.)
+`recipes.yml`/`mastery.yml` for reference before installing.
 
 ## Building
 
