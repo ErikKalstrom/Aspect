@@ -34,6 +34,7 @@ jobs:
           cp README.md "$STAGE/README.md"
           cp src/main/resources/config.yml src/main/resources/aspects.yml \
              src/main/resources/messages.yml src/main/resources/recipes.yml \
+             src/main/resources/mastery.yml \
              "$STAGE/default-configs/"
           (cd staging && zip -r ../Aspects-Plugin.zip Aspects)
 
