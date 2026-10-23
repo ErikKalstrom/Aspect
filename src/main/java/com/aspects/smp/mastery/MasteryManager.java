@@ -4,6 +4,7 @@ import com.aspects.smp.data.PlayerDataRepository;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -43,12 +44,34 @@ public final class MasteryManager {
         return Map.copyOf(countsByPlayer.getOrDefault(playerId, Map.of()));
     }
 
-    /** Records one more successful activation and persists the new total. Returns the new count. */
-    public int recordActivation(UUID playerId, String aspectId) {
-        Map<String, Integer> playerCounts = countsByPlayer.computeIfAbsent(playerId, id -> new ConcurrentHashMap<>());
-        int newCount = playerCounts.merge(aspectId, 1, Integer::sum);
-        repository.saveMasteryCount(playerId, aspectId, newCount);
-        return newCount;
+    /**
+     * Reads a player's mastery directly from the database, bypassing the in-memory cache entirely.
+     * Used for admin inspection, where showing stale or empty data from a cache that was never
+     * loaded (e.g. the player is online but joined while mastery tracking was off) could lead an
+     * admin to make a reset decision based on wrong information -- unlike the player-facing displays
+     * in {@code /aspects info} and the main GUI, an admin command can tolerate the extra DB round
+     * trip in exchange for always being correct.
+     */
+    public CompletableFuture<Map<String, Integer>> loadFromDatabase(UUID playerId) {
+        return repository.loadMastery(playerId);
+    }
+
+    /**
+     * Records one more successful activation. The database performs the increment atomically and
+     * is the sole source of truth for the resulting count -- this deliberately does NOT increment
+     * the local cache itself and write that value, because a cache that was never loaded (e.g. the
+     * player joined while mastery tracking was off, then it was turned back on with a live reload)
+     * would otherwise compute "1" and silently overwrite real historical data in the database. The
+     * cache is only ever updated here with whatever the database reports back as the true count,
+     * which self-heals an unloaded or stale cache on every single activation.
+     */
+    public void recordActivation(UUID playerId, String aspectId) {
+        repository.incrementMastery(playerId, aspectId).thenAccept(newCount -> {
+            if (newCount < 0) {
+                return; // the write failed and was already logged; leave the cache as-is rather than guess
+            }
+            countsByPlayer.computeIfAbsent(playerId, id -> new ConcurrentHashMap<>()).put(aspectId, newCount);
+        });
     }
 
     /** Admin-triggered reset for a single Aspect: clears both the cache and the persisted count. */

@@ -38,6 +38,7 @@ public final class AspectsTabCompleter implements TabCompleter {
             options.add("give");
             options.add("give-selection");
             options.add("clear-cooldown");
+            options.add("mastery");
             options.add("reload");
             options.add("list");
             options.add("debug");
@@ -49,8 +50,19 @@ public final class AspectsTabCompleter implements TabCompleter {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 options.add(player.getName());
             }
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("mastery")) {
+            options.add("reset");
+            options.add("inspect");
         } else if (args.length == 4 && args[0].equalsIgnoreCase("admin")
                 && (args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("give"))) {
+            options.addAll(plugin.getConfigManager().aspectDefinitions().keySet());
+        } else if (args.length == 4 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("mastery")
+                && (args[2].equalsIgnoreCase("reset") || args[2].equalsIgnoreCase("inspect"))) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                options.add(player.getName());
+            }
+        } else if (args.length == 5 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("mastery")
+                && (args[2].equalsIgnoreCase("reset") || args[2].equalsIgnoreCase("inspect"))) {
             options.addAll(plugin.getConfigManager().aspectDefinitions().keySet());
         }
 

@@ -507,4 +507,24 @@ class AspectsConfigParserTest {
         assertFalse(errors.isEmpty());
         assertTrue(config.levels().isEmpty());
     }
+
+    @Test
+    void parseMastery_enabledWithNoValidLevels_reportsWarning() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader("enabled: true\n"));
+        List<String> errors = new ArrayList<>();
+
+        AspectsConfigParser.parseMastery(yml, errors);
+
+        assertTrue(errors.stream().anyMatch(e -> e.contains("no valid levels")));
+    }
+
+    @Test
+    void parseMastery_disabledWithNoLevels_reportsNoWarning() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader("enabled: false\n"));
+        List<String> errors = new ArrayList<>();
+
+        AspectsConfigParser.parseMastery(yml, errors);
+
+        assertTrue(errors.isEmpty());
+    }
 }

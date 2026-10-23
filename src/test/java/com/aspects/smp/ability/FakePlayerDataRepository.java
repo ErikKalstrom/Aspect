@@ -55,9 +55,10 @@ public final class FakePlayerDataRepository implements PlayerDataRepository {
     }
 
     @Override
-    public CompletableFuture<Void> saveMasteryCount(UUID playerId, String aspectId, int count) {
-        mastery.computeIfAbsent(playerId, id -> new ConcurrentHashMap<>()).put(aspectId, count);
-        return CompletableFuture.completedFuture(null);
+    public CompletableFuture<Integer> incrementMastery(UUID playerId, String aspectId) {
+        int newCount = mastery.computeIfAbsent(playerId, id -> new ConcurrentHashMap<>())
+                .merge(aspectId, 1, Integer::sum);
+        return CompletableFuture.completedFuture(newCount);
     }
 
     @Override

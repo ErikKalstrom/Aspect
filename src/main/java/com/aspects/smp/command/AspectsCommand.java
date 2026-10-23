@@ -151,7 +151,8 @@ public final class AspectsCommand implements CommandExecutor {
     private String masterySummary(Player player, Aspect aspect) {
         List<MasteryLevel> levels = plugin.getConfigManager().mastery().levels();
         int count = plugin.getMasteryManager().getActivationCount(player.getUniqueId(), aspect.id());
-        String levelTitle = MasteryLevelCalculator.currentLevel(levels, count).map(MasteryLevel::title).orElse("Unranked");
+        String levelTitle = MasteryLevelCalculator.currentLevel(levels, count).map(MasteryLevel::title)
+                .orElse(plugin.getConfigManager().message("mastery.unranked-title"));
         String progress = MasteryLevelCalculator.nextLevel(levels, count)
                 .map(next -> " <gray>(" + (next.activations() - count) + " more to " + next.title() + ")</gray>")
                 .orElse("");

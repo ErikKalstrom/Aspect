@@ -211,6 +211,10 @@ public final class AspectsConfigParser {
             levels.add(new MasteryLevel(activations, title));
         }
         levels.sort(Comparator.comparingInt(MasteryLevel::activations));
+        if (enabled && levels.isEmpty()) {
+            errors.add("mastery.yml is enabled but has no valid levels -- every player will stay " +
+                    "'Unranked' forever; add at least one entry under 'levels'");
+        }
         return new MasteryConfig(enabled, List.copyOf(levels));
     }
 

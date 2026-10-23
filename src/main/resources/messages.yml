@@ -23,6 +23,9 @@ reroll:
   new: "<gray>New Aspect:</gray> {new}"
   no-eligible-aspect: "<red>No other Aspect is currently available to reroll into.</red>"
 
+mastery:
+  unranked-title: "Unranked"
+
 gui:
   reroll-confirm:
     title: "<dark_purple>Reroll Aspect?</dark_purple>"

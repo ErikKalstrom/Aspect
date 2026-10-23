@@ -17,11 +17,32 @@ class MasteryManagerTest {
         MasteryManager manager = new MasteryManager(repository);
         UUID playerId = UUID.randomUUID();
 
-        assertEquals(1, manager.recordActivation(playerId, "fire"));
-        assertEquals(2, manager.recordActivation(playerId, "fire"));
+        manager.recordActivation(playerId, "fire");
+        manager.recordActivation(playerId, "fire");
 
         assertEquals(2, manager.getActivationCount(playerId, "fire"));
         assertEquals(2, repository.mastery.get(playerId).get("fire"));
+    }
+
+    @Test
+    void recordActivation_withoutEverLoadingTheCache_stillIncrementsTheRealPersistedCount() {
+        // Regression test for the Critical bug a review caught: if the database is treated as
+        // authoritative only via an initial load, an activation recorded for a player whose cache
+        // was never populated (e.g. mastery was off when they joined, then turned back on with a
+        // live reload) would compute "1" locally and overwrite real history. The database must do
+        // the increment itself so this is safe no matter what the cache currently holds.
+        FakePlayerDataRepository repository = new FakePlayerDataRepository();
+        UUID playerId = UUID.randomUUID();
+        repository.mastery.put(playerId, new java.util.concurrent.ConcurrentHashMap<>(Map.of("fire", 10)));
+        MasteryManager manager = new MasteryManager(repository);
+        // Deliberately never call manager.loadForPlayer(playerId) -- the cache starts empty.
+
+        manager.recordActivation(playerId, "fire");
+
+        assertEquals(11, repository.mastery.get(playerId).get("fire"),
+                "the real persisted count must be incremented from 10 to 11, never reset to 1");
+        assertEquals(11, manager.getActivationCount(playerId, "fire"),
+                "the cache must self-heal to the true count once an activation reports it back");
     }
 
     @Test
@@ -68,7 +89,8 @@ class MasteryManagerTest {
         manager.loadForPlayer(playerId);
 
         assertEquals(10, manager.getActivationCount(playerId, "fire"));
-        assertEquals(11, manager.recordActivation(playerId, "fire"));
+        manager.recordActivation(playerId, "fire");
+        assertEquals(11, manager.getActivationCount(playerId, "fire"));
     }
 
     @Test

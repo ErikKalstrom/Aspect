@@ -193,27 +193,30 @@ class SQLitePlayerDataRepositoryTest {
     }
 
     @Test
-    void saveMasteryCount_thenLoadMastery_roundTrips() throws Exception {
+    void incrementMastery_thenLoadMastery_roundTrips() throws Exception {
         SQLitePlayerDataRepository repo = newRepository();
         UUID playerId = UUID.randomUUID();
 
-        repo.saveMasteryCount(playerId, "fire", 12).get();
+        int newCount = repo.incrementMastery(playerId, "fire").get();
         Map<String, Integer> mastery = repo.loadMastery(playerId).get();
 
+        assertEquals(1, newCount);
         assertEquals(1, mastery.size());
-        assertEquals(12, mastery.get("fire"));
+        assertEquals(1, mastery.get("fire"));
         repo.close();
     }
 
     @Test
-    void saveMasteryCount_calledTwice_updatesInPlace() throws Exception {
+    void incrementMastery_calledTwice_accumulatesInTheDatabase() throws Exception {
         SQLitePlayerDataRepository repo = newRepository();
         UUID playerId = UUID.randomUUID();
 
-        repo.saveMasteryCount(playerId, "fire", 1).get();
-        repo.saveMasteryCount(playerId, "fire", 2).get();
+        int first = repo.incrementMastery(playerId, "fire").get();
+        int second = repo.incrementMastery(playerId, "fire").get();
         Map<String, Integer> mastery = repo.loadMastery(playerId).get();
 
+        assertEquals(1, first);
+        assertEquals(2, second);
         assertEquals(2, mastery.get("fire"));
         repo.close();
     }
@@ -222,14 +225,14 @@ class SQLitePlayerDataRepositoryTest {
     void deleteMastery_removesOnlyThatAspect() throws Exception {
         SQLitePlayerDataRepository repo = newRepository();
         UUID playerId = UUID.randomUUID();
-        repo.saveMasteryCount(playerId, "fire", 5).get();
-        repo.saveMasteryCount(playerId, "frost", 7).get();
+        repo.incrementMastery(playerId, "fire").get();
+        repo.incrementMastery(playerId, "frost").get();
 
         repo.deleteMastery(playerId, "fire").get();
         Map<String, Integer> mastery = repo.loadMastery(playerId).get();
 
         assertEquals(1, mastery.size());
-        assertEquals(7, mastery.get("frost"));
+        assertEquals(1, mastery.get("frost"));
         repo.close();
     }
 
@@ -237,8 +240,8 @@ class SQLitePlayerDataRepositoryTest {
     void deleteAllMastery_removesEveryAspectForPlayer() throws Exception {
         SQLitePlayerDataRepository repo = newRepository();
         UUID playerId = UUID.randomUUID();
-        repo.saveMasteryCount(playerId, "fire", 5).get();
-        repo.saveMasteryCount(playerId, "frost", 7).get();
+        repo.incrementMastery(playerId, "fire").get();
+        repo.incrementMastery(playerId, "frost").get();
 
         repo.deleteAllMastery(playerId).get();
         Map<String, Integer> mastery = repo.loadMastery(playerId).get();

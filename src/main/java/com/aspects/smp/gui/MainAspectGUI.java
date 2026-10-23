@@ -106,8 +106,9 @@ public final class MainAspectGUI implements AspectsGuiHolder {
     private String masterySummary(Aspect aspect) {
         List<MasteryLevel> levels = plugin.getConfigManager().mastery().levels();
         int count = plugin.getMasteryManager().getActivationCount(player.getUniqueId(), aspect.id());
-        return MasteryLevelCalculator.currentLevel(levels, count).map(MasteryLevel::title).orElse("Unranked") +
-                " <gray>(" + count + ")</gray>";
+        String levelTitle = MasteryLevelCalculator.currentLevel(levels, count).map(MasteryLevel::title)
+                .orElse(plugin.getConfigManager().message("mastery.unranked-title"));
+        return levelTitle + " <gray>(" + count + ")</gray>";
     }
 
     private ItemStack craftInfoItem() {

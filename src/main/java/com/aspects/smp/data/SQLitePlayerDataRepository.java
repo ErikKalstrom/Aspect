@@ -217,18 +217,37 @@ public final class SQLitePlayerDataRepository implements PlayerDataRepository {
         }, executor);
     }
 
+    /**
+     * Atomically increments and returns the new persisted count, rather than taking a count to
+     * write: an absolute-write version of this method (as originally built) let the caller's
+     * in-memory cache silently overwrite real historical data whenever that cache hadn't been
+     * loaded first -- e.g. mastery tracking is turned off, a player joins while it's off (so
+     * nothing loads their cache), then it's turned back on live and their very next activation
+     * would otherwise reset their count to 1. Making the database the source of truth for the
+     * increment itself removes that whole class of clobber, independent of cache state.
+     */
     @Override
-    public CompletableFuture<Void> saveMasteryCount(UUID playerId, String aspectId, int count) {
-        return CompletableFuture.runAsync(() -> {
-            String sql = "INSERT INTO mastery (uuid, aspect_id, activations) VALUES (?, ?, ?) " +
-                    "ON CONFLICT(uuid, aspect_id) DO UPDATE SET activations = excluded.activations";
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setString(1, playerId.toString());
-                ps.setString(2, aspectId);
-                ps.setInt(3, count);
-                ps.executeUpdate();
+    public CompletableFuture<Integer> incrementMastery(UUID playerId, String aspectId) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                try (PreparedStatement upsert = connection.prepareStatement(
+                        "INSERT INTO mastery (uuid, aspect_id, activations) VALUES (?, ?, 1) " +
+                                "ON CONFLICT(uuid, aspect_id) DO UPDATE SET activations = activations + 1")) {
+                    upsert.setString(1, playerId.toString());
+                    upsert.setString(2, aspectId);
+                    upsert.executeUpdate();
+                }
+                try (PreparedStatement select = connection.prepareStatement(
+                        "SELECT activations FROM mastery WHERE uuid = ? AND aspect_id = ?")) {
+                    select.setString(1, playerId.toString());
+                    select.setString(2, aspectId);
+                    try (ResultSet rs = select.executeQuery()) {
+                        return rs.next() ? rs.getInt("activations") : 1;
+                    }
+                }
             } catch (SQLException e) {
-                logger.severe("Failed to save mastery for " + playerId + ": " + e.getMessage());
+                logger.severe("Failed to increment mastery for " + playerId + "/" + aspectId + ": " + e.getMessage());
+                return -1;
             }
         }, executor);
     }

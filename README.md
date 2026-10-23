@@ -191,8 +191,12 @@ and `aspects.gui` default to all players; everything else (`aspects.inspect`,
   bug.
 - **Mastery doesn't show up anywhere** — confirm `mastery.yml`'s `enabled` is `true`
   (this setting is applied live by `/aspects admin reload`, no restart needed). A fresh
-  server with mastery just enabled starts everyone at 0 activations for every Aspect —
-  this is expected, not a bug; it only tracks activations from the moment it's enabled.
+  server with mastery enabled for the first time starts everyone at 0 activations for
+  every Aspect, which is expected. Turning mastery off and back on later does **not**
+  lose anyone's progress — every activation is counted directly in the database, so a
+  player's real count is always correct the moment they next use an ability, even if
+  their displayed count briefly shows 0 right after a reload re-enables it before they've
+  acted again.
 
 ## Project docs
 

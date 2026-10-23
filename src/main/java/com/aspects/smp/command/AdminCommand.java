@@ -308,6 +308,10 @@ public final class AdminCommand {
         }
         if (args.length >= 4) {
             String aspectId = args[3].toLowerCase();
+            if (plugin.getAspectRegistry().get(aspectId).isEmpty()) {
+                sender.sendMessage(MessageUtil.parse("<red>Unknown Aspect id: " + aspectId + "</red>"));
+                return true;
+            }
             plugin.getMasteryManager().resetMastery(target.getUniqueId(), aspectId);
             sender.sendMessage(MessageUtil.parse(
                     "<green>Reset " + target.getName() + "'s mastery for " + aspectId + ".</green>"));
@@ -329,30 +333,37 @@ public final class AdminCommand {
             sender.sendMessage(MessageUtil.parse("<red>Player '" + args[2] + "' is not online.</red>"));
             return true;
         }
-        List<MasteryLevel> levels = plugin.getConfigManager().mastery().levels();
-        sender.sendMessage(MessageUtil.parse("<dark_purple>Mastery for " + target.getName() + ":</dark_purple>"));
-        if (args.length >= 4) {
-            String aspectId = args[3].toLowerCase();
-            printMasteryLine(sender, target, aspectId, levels);
-        } else {
-            Map<String, Integer> counts = plugin.getMasteryManager().getAllCounts(target.getUniqueId());
-            if (counts.isEmpty()) {
-                sender.sendMessage(MessageUtil.parse("<white>No mastery progress recorded yet.</white>"));
-                return true;
-            }
-            for (String aspectId : counts.keySet()) {
-                printMasteryLine(sender, target, aspectId, levels);
-            }
-        }
+        String onlyAspectId = args.length >= 4 ? args[3].toLowerCase() : null;
+        // Read straight from the database rather than the in-memory cache: a player can be online
+        // with an empty cache (e.g. they joined while mastery tracking was off), and an admin making
+        // a reset decision needs the real persisted numbers, not whatever the cache happens to hold.
+        plugin.getMasteryManager().loadFromDatabase(target.getUniqueId()).thenAccept(counts ->
+                plugin.getServer().getScheduler().runTask(plugin, () ->
+                        showMasteryInspectResult(sender, target.getName(), counts, onlyAspectId)));
         return true;
     }
 
-    private void printMasteryLine(CommandSender sender, Player target, String aspectId,
-                                   List<MasteryLevel> levels) {
-        int count = plugin.getMasteryManager().getActivationCount(target.getUniqueId(), aspectId);
+    private void showMasteryInspectResult(CommandSender sender, String targetName,
+                                           Map<String, Integer> counts, String onlyAspectId) {
+        List<MasteryLevel> levels = plugin.getConfigManager().mastery().levels();
+        sender.sendMessage(MessageUtil.parse("<dark_purple>Mastery for " + targetName + ":</dark_purple>"));
+        if (onlyAspectId != null) {
+            printMasteryLine(sender, onlyAspectId, counts.getOrDefault(onlyAspectId, 0), levels);
+            return;
+        }
+        if (counts.isEmpty()) {
+            sender.sendMessage(MessageUtil.parse("<white>No mastery progress recorded yet.</white>"));
+            return;
+        }
+        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+            printMasteryLine(sender, entry.getKey(), entry.getValue(), levels);
+        }
+    }
+
+    private void printMasteryLine(CommandSender sender, String aspectId, int count, List<MasteryLevel> levels) {
         String levelTitle = MasteryLevelCalculator.currentLevel(levels, count)
                 .map(MasteryLevel::title)
-                .orElse("Unranked");
+                .orElse(plugin.getConfigManager().message("mastery.unranked-title"));
         sender.sendMessage(MessageUtil.parse(
                 "<white> - " + aspectId + ": " + count + " activation(s), " + levelTitle + "</white>"));
     }
