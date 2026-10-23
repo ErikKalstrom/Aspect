@@ -52,6 +52,7 @@ gui:
     craft-info-disabled: "<red>Rerolling via crafting is currently disabled on this server.</red>"
     cooldown-ready: "<green>Ready</green>"
     cooldown-remaining: "<red>{seconds}s remaining</red>"
+    mastery-label: "<gray>Mastery:</gray>"
   admin-assign:
     title: "<dark_purple>Assign Aspect</dark_purple>"
     choose-lore: "<gray>Click to assign this Aspect.</gray>"

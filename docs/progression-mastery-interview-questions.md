@@ -1,5 +1,21 @@
 # Aspects Plugin — Progression & Mastery Design Interview
 
+**Status: implemented without product input (2026-10-23).** This interview was offered to the
+product team, who declined to answer it (they didn't find the questions relevant to their review).
+The feature was still worth shipping rather than leaving unbuilt, so it was implemented with the
+lowest-risk, most conservative choice for every open question below: **disabled by default**
+(`mastery.yml`'s `enabled: false`), **purely cosmetic rewards only** (a title shown in `/aspects
+info` and the main GUI — no cooldown reduction or other gameplay-affecting bonus, per the spec's own
+caution against that), **one combined system** (activation count directly drives levels, no separate
+stats-only tracker), **counted by successful activations, not time**, **per-(player, Aspect)
+progress that survives rerolling away and back** (reset only by an explicit admin command), and
+**the same level thresholds for every Aspect** regardless of its cooldown. See the "Aspect Mastery"
+section of `README.md` for the shipped behavior, and `mastery.yml` to change the numbers — nothing
+here required a code change to retune. If product ever does want to weigh in, these are still the
+right questions to ask; the answers below were never given, only assumed.
+
+---
+
 **Purpose of this document:** The product team's re-spec (the "master prompt") asks for an optional
 Aspect progression/mastery/statistics system (sections 14.1 and 14.2) as the one genuinely new
 feature in an otherwise-already-shipped plugin. The spec deliberately leaves almost every concrete

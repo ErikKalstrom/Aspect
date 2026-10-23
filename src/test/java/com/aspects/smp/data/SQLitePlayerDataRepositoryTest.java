@@ -191,4 +191,59 @@ class SQLitePlayerDataRepositoryTest {
         }
         repo.close();
     }
+
+    @Test
+    void saveMasteryCount_thenLoadMastery_roundTrips() throws Exception {
+        SQLitePlayerDataRepository repo = newRepository();
+        UUID playerId = UUID.randomUUID();
+
+        repo.saveMasteryCount(playerId, "fire", 12).get();
+        Map<String, Integer> mastery = repo.loadMastery(playerId).get();
+
+        assertEquals(1, mastery.size());
+        assertEquals(12, mastery.get("fire"));
+        repo.close();
+    }
+
+    @Test
+    void saveMasteryCount_calledTwice_updatesInPlace() throws Exception {
+        SQLitePlayerDataRepository repo = newRepository();
+        UUID playerId = UUID.randomUUID();
+
+        repo.saveMasteryCount(playerId, "fire", 1).get();
+        repo.saveMasteryCount(playerId, "fire", 2).get();
+        Map<String, Integer> mastery = repo.loadMastery(playerId).get();
+
+        assertEquals(2, mastery.get("fire"));
+        repo.close();
+    }
+
+    @Test
+    void deleteMastery_removesOnlyThatAspect() throws Exception {
+        SQLitePlayerDataRepository repo = newRepository();
+        UUID playerId = UUID.randomUUID();
+        repo.saveMasteryCount(playerId, "fire", 5).get();
+        repo.saveMasteryCount(playerId, "frost", 7).get();
+
+        repo.deleteMastery(playerId, "fire").get();
+        Map<String, Integer> mastery = repo.loadMastery(playerId).get();
+
+        assertEquals(1, mastery.size());
+        assertEquals(7, mastery.get("frost"));
+        repo.close();
+    }
+
+    @Test
+    void deleteAllMastery_removesEveryAspectForPlayer() throws Exception {
+        SQLitePlayerDataRepository repo = newRepository();
+        UUID playerId = UUID.randomUUID();
+        repo.saveMasteryCount(playerId, "fire", 5).get();
+        repo.saveMasteryCount(playerId, "frost", 7).get();
+
+        repo.deleteAllMastery(playerId).get();
+        Map<String, Integer> mastery = repo.loadMastery(playerId).get();
+
+        assertTrue(mastery.isEmpty());
+        repo.close();
+    }
 }

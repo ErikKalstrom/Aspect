@@ -18,5 +18,13 @@ public interface PlayerDataRepository {
 
     CompletableFuture<Void> deleteCooldowns(UUID playerId);
 
+    CompletableFuture<Map<String, Integer>> loadMastery(UUID playerId);
+
+    CompletableFuture<Void> saveMasteryCount(UUID playerId, String aspectId, int count);
+
+    CompletableFuture<Void> deleteMastery(UUID playerId, String aspectId);
+
+    CompletableFuture<Void> deleteAllMastery(UUID playerId);
+
     void close();
 }

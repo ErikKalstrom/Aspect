@@ -431,4 +431,80 @@ class AspectsConfigParserTest {
 
         assertFalse(config.respectWorldGuard());
     }
+
+    @Test
+    void parseMastery_defaultsToDisabledWithNoLevels() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(""));
+        List<String> errors = new ArrayList<>();
+
+        MasteryConfig config = AspectsConfigParser.parseMastery(yml, errors);
+
+        assertTrue(errors.isEmpty());
+        assertFalse(config.enabled());
+        assertTrue(config.levels().isEmpty());
+    }
+
+    @Test
+    void parseMastery_acceptsValidLevels() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "enabled: true\n" +
+                "levels:\n" +
+                "  - activations: 25\n" +
+                "    title: \"Novice\"\n" +
+                "  - activations: 75\n" +
+                "    title: \"Adept\"\n"));
+        List<String> errors = new ArrayList<>();
+
+        MasteryConfig config = AspectsConfigParser.parseMastery(yml, errors);
+
+        assertTrue(errors.isEmpty());
+        assertTrue(config.enabled());
+        assertEquals(2, config.levels().size());
+        assertEquals("Novice", config.levels().get(0).title());
+        assertEquals(25, config.levels().get(0).activations());
+    }
+
+    @Test
+    void parseMastery_sortsLevelsByActivationsAscending() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "levels:\n" +
+                "  - activations: 75\n" +
+                "    title: \"Adept\"\n" +
+                "  - activations: 25\n" +
+                "    title: \"Novice\"\n"));
+        List<String> errors = new ArrayList<>();
+
+        MasteryConfig config = AspectsConfigParser.parseMastery(yml, errors);
+
+        assertEquals("Novice", config.levels().get(0).title());
+        assertEquals("Adept", config.levels().get(1).title());
+    }
+
+    @Test
+    void parseMastery_rejectsNonPositiveActivations() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "levels:\n" +
+                "  - activations: 0\n" +
+                "    title: \"Broken\"\n"));
+        List<String> errors = new ArrayList<>();
+
+        MasteryConfig config = AspectsConfigParser.parseMastery(yml, errors);
+
+        assertFalse(errors.isEmpty());
+        assertTrue(config.levels().isEmpty());
+    }
+
+    @Test
+    void parseMastery_rejectsBlankTitle() {
+        YamlConfiguration yml = YamlConfiguration.loadConfiguration(new StringReader(
+                "levels:\n" +
+                "  - activations: 25\n" +
+                "    title: \"\"\n"));
+        List<String> errors = new ArrayList<>();
+
+        MasteryConfig config = AspectsConfigParser.parseMastery(yml, errors);
+
+        assertFalse(errors.isEmpty());
+        assertTrue(config.levels().isEmpty());
+    }
 }

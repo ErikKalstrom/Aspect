@@ -2,8 +2,10 @@ package com.aspects.smp.command;
 
 import com.aspects.smp.AspectsPlugin;
 import com.aspects.smp.aspect.Aspect;
+import com.aspects.smp.config.MasteryLevel;
 import com.aspects.smp.gui.AdminGUI;
 import com.aspects.smp.item.CustomItemManager;
+import com.aspects.smp.mastery.MasteryLevelCalculator;
 import com.aspects.smp.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -27,7 +29,7 @@ public final class AdminCommand {
         if (args.length == 0) {
             if (!(sender instanceof Player player)) {
                 sender.sendMessage(MessageUtil.parse(
-                        "<red>Usage: /aspects admin <set|reroll|reset|give-reroller|give|give-selection|clear-cooldown|reload|list|debug> ...</red>"));
+                        "<red>Usage: /aspects admin <set|reroll|reset|give-reroller|give|give-selection|clear-cooldown|mastery|reload|list|debug> ...</red>"));
                 return true;
             }
             if (!player.hasPermission("aspects.admin")) {
@@ -46,6 +48,7 @@ public final class AdminCommand {
             case "give" -> handleGive(sender, args);
             case "give-selection" -> handleGiveSelection(sender, args);
             case "clear-cooldown" -> handleClearCooldown(sender, args);
+            case "mastery" -> handleMastery(sender, args);
             case "reload" -> handleReload(sender);
             case "list" -> handleList(sender);
             case "debug" -> handleDebug(sender, args);
@@ -273,6 +276,87 @@ public final class AdminCommand {
         return true;
     }
 
+    private boolean handleMastery(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("aspects.admin.mastery")) {
+            sender.sendMessage(MessageUtil.parse("<red>You do not have permission to do that.</red>"));
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(MessageUtil.parse("<red>Usage: /aspects admin mastery <reset|inspect> <player> [aspect]</red>"));
+            return true;
+        }
+        String action = args[1].toLowerCase();
+        return switch (action) {
+            case "reset" -> handleMasteryReset(sender, args);
+            case "inspect" -> handleMasteryInspect(sender, args);
+            default -> {
+                sender.sendMessage(MessageUtil.parse("<red>Unknown mastery action '" + action + "'.</red>"));
+                yield true;
+            }
+        };
+    }
+
+    private boolean handleMasteryReset(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(MessageUtil.parse("<red>Usage: /aspects admin mastery reset <player> [aspect]</red>"));
+            return true;
+        }
+        Player target = Bukkit.getPlayerExact(args[2]);
+        if (target == null) {
+            sender.sendMessage(MessageUtil.parse("<red>Player '" + args[2] + "' is not online.</red>"));
+            return true;
+        }
+        if (args.length >= 4) {
+            String aspectId = args[3].toLowerCase();
+            plugin.getMasteryManager().resetMastery(target.getUniqueId(), aspectId);
+            sender.sendMessage(MessageUtil.parse(
+                    "<green>Reset " + target.getName() + "'s mastery for " + aspectId + ".</green>"));
+        } else {
+            plugin.getMasteryManager().resetAllMastery(target.getUniqueId());
+            sender.sendMessage(MessageUtil.parse(
+                    "<green>Reset all of " + target.getName() + "'s mastery progress.</green>"));
+        }
+        return true;
+    }
+
+    private boolean handleMasteryInspect(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(MessageUtil.parse("<red>Usage: /aspects admin mastery inspect <player> [aspect]</red>"));
+            return true;
+        }
+        Player target = Bukkit.getPlayerExact(args[2]);
+        if (target == null) {
+            sender.sendMessage(MessageUtil.parse("<red>Player '" + args[2] + "' is not online.</red>"));
+            return true;
+        }
+        List<MasteryLevel> levels = plugin.getConfigManager().mastery().levels();
+        sender.sendMessage(MessageUtil.parse("<dark_purple>Mastery for " + target.getName() + ":</dark_purple>"));
+        if (args.length >= 4) {
+            String aspectId = args[3].toLowerCase();
+            printMasteryLine(sender, target, aspectId, levels);
+        } else {
+            Map<String, Integer> counts = plugin.getMasteryManager().getAllCounts(target.getUniqueId());
+            if (counts.isEmpty()) {
+                sender.sendMessage(MessageUtil.parse("<white>No mastery progress recorded yet.</white>"));
+                return true;
+            }
+            for (String aspectId : counts.keySet()) {
+                printMasteryLine(sender, target, aspectId, levels);
+            }
+        }
+        return true;
+    }
+
+    private void printMasteryLine(CommandSender sender, Player target, String aspectId,
+                                   List<MasteryLevel> levels) {
+        int count = plugin.getMasteryManager().getActivationCount(target.getUniqueId(), aspectId);
+        String levelTitle = MasteryLevelCalculator.currentLevel(levels, count)
+                .map(MasteryLevel::title)
+                .orElse("Unranked");
+        sender.sendMessage(MessageUtil.parse(
+                "<white> - " + aspectId + ": " + count + " activation(s), " + levelTitle + "</white>"));
+    }
+
     private boolean handleReload(CommandSender sender) {
         if (!sender.hasPermission("aspects.admin.reload")) {
             sender.sendMessage(MessageUtil.parse("<red>You do not have permission to do that.</red>"));
@@ -292,10 +376,10 @@ public final class AdminCommand {
         }
         plugin.getRerollerRecipeManager().register(plugin.getConfigManager().recipes());
         sender.sendMessage(MessageUtil.parse("<green>Aspects configuration reloaded.</green>"));
-        sender.sendMessage(MessageUtil.parse("<yellow>Note: messages.yml, recipes.yml, and the reveal-animation " +
-                "setting are applied live. Changes to aspects.yml and to the reroll/reset behavior flags, " +
-                "blocked-worlds, or respect-worldguard in config.yml require a server restart to take " +
-                "effect.</yellow>"));
+        sender.sendMessage(MessageUtil.parse("<yellow>Note: messages.yml, recipes.yml, mastery.yml, and the " +
+                "reveal-animation setting are applied live. Changes to aspects.yml and to the reroll/reset " +
+                "behavior flags, blocked-worlds, or respect-worldguard in config.yml require a server restart " +
+                "to take effect.</yellow>"));
         return true;
     }
 

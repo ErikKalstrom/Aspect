@@ -49,3 +49,6 @@ permissions:
   aspects.admin.debug:
     description: View diagnostic information about a player's Aspect state.
     default: op
+  aspects.admin.mastery:
+    description: Reset or inspect a player's Aspect mastery progress.
+    default: op

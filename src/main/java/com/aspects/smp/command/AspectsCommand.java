@@ -2,13 +2,17 @@ package com.aspects.smp.command;
 
 import com.aspects.smp.AspectsPlugin;
 import com.aspects.smp.aspect.Aspect;
+import com.aspects.smp.config.MasteryLevel;
 import com.aspects.smp.gui.MainAspectGUI;
+import com.aspects.smp.mastery.MasteryLevelCalculator;
 import com.aspects.smp.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.List;
 
 public final class AspectsCommand implements CommandExecutor {
     private final AspectsPlugin plugin;
@@ -138,7 +142,20 @@ public final class AspectsCommand implements CommandExecutor {
                 ? "<red>" + ((remainingMillis + 999) / 1000) + "s remaining</red>"
                 : "<green>Ready</green>";
         player.sendMessage(MessageUtil.parse("<dark_purple>Cooldown:</dark_purple> " + cooldownText));
+        if (plugin.getConfigManager().mastery().enabled()) {
+            player.sendMessage(MessageUtil.parse("<dark_purple>Mastery:</dark_purple> " + masterySummary(player, aspect)));
+        }
         return true;
+    }
+
+    private String masterySummary(Player player, Aspect aspect) {
+        List<MasteryLevel> levels = plugin.getConfigManager().mastery().levels();
+        int count = plugin.getMasteryManager().getActivationCount(player.getUniqueId(), aspect.id());
+        String levelTitle = MasteryLevelCalculator.currentLevel(levels, count).map(MasteryLevel::title).orElse("Unranked");
+        String progress = MasteryLevelCalculator.nextLevel(levels, count)
+                .map(next -> " <gray>(" + (next.activations() - count) + " more to " + next.title() + ")</gray>")
+                .orElse("");
+        return "<white>" + levelTitle + "</white> <gray>(" + count + " activation(s))</gray>" + progress;
     }
 
     private String describeSuffix(String description) {

@@ -36,6 +36,7 @@ import com.aspects.smp.item.CustomItemManager;
 import com.aspects.smp.data.PlayerDataRepository;
 import com.aspects.smp.data.SQLitePlayerDataRepository;
 import com.aspects.smp.integration.WorldGuardIntegration;
+import com.aspects.smp.mastery.MasteryManager;
 import com.aspects.smp.item.AspectSelectorInteractListener;
 import com.aspects.smp.item.RerollerInteractListener;
 import com.aspects.smp.item.RerollerProtectionListener;
@@ -87,6 +88,7 @@ public final class AspectsPlugin extends JavaPlugin {
     private AbilityManager abilityManager;
     private WorldGuardIntegration worldGuardIntegration;
     private ProtectionGate protectionGate;
+    private MasteryManager masteryManager;
 
     @Override
     public void onLoad() {
@@ -118,6 +120,7 @@ public final class AspectsPlugin extends JavaPlugin {
         }
 
         cooldownManager = new AbilityCooldownManager(dataRepository);
+        masteryManager = new MasteryManager(dataRepository);
         temporaryEffectManager = new TemporaryEffectManager();
         customItemManager = new CustomItemManager(this);
         rerollerRecipeManager = new RerollerRecipeManager(this);
@@ -152,6 +155,9 @@ public final class AspectsPlugin extends JavaPlugin {
 
         for (Player player : getServer().getOnlinePlayers()) {
             aspectManager.loadOrAssign(player, () -> {});
+            if (configManager.mastery().enabled()) {
+                masteryManager.loadForPlayer(player.getUniqueId());
+            }
         }
 
         rerollerRecipeManager.register(configManager.recipes());
@@ -220,5 +226,9 @@ public final class AspectsPlugin extends JavaPlugin {
 
     public ProtectionGate getProtectionGate() {
         return protectionGate;
+    }
+
+    public MasteryManager getMasteryManager() {
+        return masteryManager;
     }
 }
